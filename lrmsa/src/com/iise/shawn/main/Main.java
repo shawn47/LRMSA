@@ -40,10 +40,11 @@ public class Main {
 		multisetOfAct.add("T2");
 		multisetOfAct.add("T1");
 		multisetOfAct.add("T4");
-		multisetOfAct.add("T6");
+//		multisetOfAct.add("T6");
 		// input model file
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_xor_split.pnml";
-		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and.pnml";
+//		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and.pnml";
+		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and_skip_task.pnml";
 		
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet p1 = pnmlImport.read(new FileInputStream(new File(modelFile)));
