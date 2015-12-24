@@ -10,6 +10,7 @@ import org.jbpt.petri.unfolding.CompletePrefixUnfolding;
 import org.jbpt.petri.unfolding.Condition;
 import org.jbpt.petri.unfolding.Event;
 import org.jbpt.petri.unfolding.IBPNode;
+import org.jbpt.petri.unfolding.ICoSet;
 
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix2D;
@@ -23,10 +24,15 @@ public class SSD {
 	
 	@SuppressWarnings("rawtypes")
 	private Hashtable<String, HashSet<IBPNode>> htVertex;
+	public Hashtable<String, HashSet<String>> hVertex;
 	public ArrayList<String> alMatrix;
 	
+	@SuppressWarnings("rawtypes")
 	public void initSSD() {
 		this.alMatrix = new ArrayList<String>();
+		this.hVertex = new Hashtable<String, HashSet<String>>();
+		//row and col of matrix -> identifier
+		this.htVertex = new Hashtable<String, HashSet<IBPNode>>();
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -34,19 +40,17 @@ public class SSD {
 		ArrayList<IBPNode> alVertex = new ArrayList<IBPNode>();
 		alVertex.addAll(cpu.getEvents());
 		alVertex.addAll(cpu.getConditions());
-//		ArrayList<String> alMatrix = new ArrayList<String>();
-//		if (this.alMatrix.size() != 0) {
-//			this.alMatrix.clear();
-//		}
+
 		this.alMatrix.clear();
-		//row and col of matrix -> identifier
-		this.htVertex = new Hashtable<String, HashSet<IBPNode>>();
+
 		for(IBPNode v : alVertex) {
 			if(!this.alMatrix.contains(v.getName())) {
+				this.hVertex.put(v.getPetriNetNode().getName(), new HashSet<String>());
 				this.htVertex.put(v.getName(), new HashSet<IBPNode>());
 				this.alMatrix.add(v.getName());
 				
 			}
+			this.hVertex.get(v.getPetriNetNode().getName()).add(v.getName());
 			this.htVertex.get(v.getName()).add(v);
 		}
 		
@@ -88,15 +92,35 @@ public class SSD {
 	}
 	
 
+	private HashSet<Condition> getPostConditionWithCut(CompletePrefixUnfolding cpu, Event e) {
+		HashSet<Condition> postConditions = new HashSet<Condition>();
+		if (cpu.getCutoffEvents().contains(e)) {
+			for (Condition eSucc : e.getPostConditions()) {
+				Iterator<Condition> iESuccMappedContions = eSucc.getMappingConditions().iterator();
+				while(iESuccMappedContions.hasNext()) {
+					Condition eSuccMappedContion = iESuccMappedContions.next();
+					postConditions.add(eSuccMappedContion);
+				}
+			}
+		}
+		else {
+			for (Condition eSucc: e.getPostConditions()) {
+				postConditions.add(eSucc);
+			}
+		}
+		return postConditions;
+	}
+	
 	@SuppressWarnings("rawtypes")
 	public DoubleMatrix2D computeSSD(CompletePrefixUnfolding cpu, ArrayList<String> alOrder) {
 		ArrayList<IBPNode> alVertex = new ArrayList<IBPNode>();
 		alVertex.addAll(cpu.getEvents());
 		alVertex.addAll(cpu.getConditions());
 		this.alMatrix.clear();
+		this.htVertex.clear();
 //		ArrayList<String> alMatrix = new ArrayList<String>();
 		//row and col of matrix -> identifier
-		this.htVertex = new Hashtable<String, HashSet<IBPNode>>();
+//		this.htVertex = new Hashtable<String, HashSet<IBPNode>>();
 		for(IBPNode v : alVertex) {
 			if(!this.alMatrix.contains(v.getName())) {
 				this.htVertex.put(v.getName(), new HashSet<IBPNode>());
@@ -110,7 +134,8 @@ public class SSD {
 		//the row and col of the following matrix are the same with the key of alMatrix, 0...n-1
 		int n = this.htVertex.size();
 		
-		DoubleMatrix2D anceMatrix2dONet = this.getReachMatrix2d(cpu, n, this.alMatrix, htVertex);
+		DoubleMatrix2D anceMatrix2dONet = this.getReachMatrixCPU(cpu, n, this.alMatrix, this.htVertex);
+//		DoubleMatrix2D anceMatrix2dONet = this.getReachMatrix2d(cpu, n, this.alMatrix, htVertex);
 		
 		DoubleMatrix2D lcaMatrix2d = DoubleFactory2D.sparse.make(n, n, 0);
 //		ArrayList<Event> alVisibleTrans = new ArrayList<Event>();
@@ -166,7 +191,9 @@ public class SSD {
 			int tIndex = this.alMatrix.indexOf(tId);
 			Iterator<IBPNode> itT = this.htVertex.get(tId).iterator();
 			while(itT.hasNext()) {
-				Iterator<Condition> itTSucc = ((Event) itT.next()).getPostConditions().iterator();
+//				change ssd on cpu for the adjacent activities
+//				Iterator<Condition> itTSucc = ((Event) itT.next()).getPostConditions().iterator();
+				Iterator<Condition> itTSucc = this.getPostConditionWithCut(cpu, (Event) itT.next()).iterator();
 				while(itTSucc.hasNext()) {
 					Condition tSuccPlace = itTSucc.next();
 					Iterator<IBPNode> itTSuccPlace = this.htVertex.get(tSuccPlace.getName()).iterator();
@@ -252,12 +279,14 @@ public class SSD {
 						if(vLCA instanceof Event) {
 							// parallel
 							if(!(ssdtMatrix2d.get(tIIndex, tJIndex) > 0 || ssdtMatrix2d.get(tJIndex, tIIndex) > 0)) {
-								ssdtMatrix2d.set(tIIndex, tJIndex, 1.0);
+//								ssdtMatrix2d.set(tIIndex, tJIndex, 1.0);
+								ssdtMatrix2d.set(tIIndex, tJIndex, 0.0);
 								ArrayList<String> trace = new ArrayList<String>();
 								trace.add(tIId);
 								trace.add(tJId);
 								traceMatrix2d.set(tIIndex, tJIndex, trace);
-								ssdtMatrix2d.set(tJIndex, tIIndex, 1.0);
+//								ssdtMatrix2d.set(tJIndex, tIIndex, 1.0);
+								ssdtMatrix2d.set(tJIndex, tIIndex, 0.0);
 								trace = new ArrayList<String>();
 								trace.add(tJId);
 								trace.add(tIId);
@@ -680,6 +709,11 @@ public class SSD {
 						IBPNode v = iEventCorReachList.next();
 						int reachableIndex = alMatrix.indexOf(v.getName());
 						reachMatrix2d.set(eIndex, reachableIndex, 1.0);
+						for (int i = 0; i <= eIndex; i++) {
+							if(reachMatrix2d.get(i, eIndex) != 0.0) {
+								reachMatrix2d.set(i, reachableIndex, 1.0);
+							}
+						}
 					}
 //					int reachableIndex = alMatrix.indexOf(eSuccMappedContion.getName());
 //					reachMatrix2d.set(eIndex, reachableIndex, 1.0);
