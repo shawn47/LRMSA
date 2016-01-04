@@ -111,6 +111,7 @@ public class SSD {
 		return postConditions;
 	}
 	
+	
 	@SuppressWarnings("rawtypes")
 	public DoubleMatrix2D computeSSD(CompletePrefixUnfolding cpu, ArrayList<String> alOrder) {
 		ArrayList<IBPNode> alVertex = new ArrayList<IBPNode>();
@@ -179,7 +180,7 @@ public class SSD {
 		visitedTrans.clear();
 		//for sequential relations, set distance to 1 (predecessor to successor)
 		for(Event t : alTrans) {
-			HashSet<String> hsSuccPlaceId = this.getTransitionSuccSet(t, this.htVertex);
+			HashSet<String> hsSuccPlaceId = this.getTransitionSuccSet(cpu, t, this.htVertex);
 			if(hsSuccPlaceId.size() > 1) {
 				//parallel structure, pass
 				continue;
@@ -244,7 +245,7 @@ public class SSD {
 				int tJIndex = this.alMatrix.indexOf(tJId);
 				ArrayList<String> visited = new ArrayList<String>();
 				ArrayList<String> trace = new ArrayList<String>();
-				int ssdt = this.computeRecur(tI, tJ, ssdtMatrix2d, trace, visited, this.alMatrix, this.htVertex, traceMatrix2d);
+				int ssdt = this.computeRecur(cpu, tI, tJ, ssdtMatrix2d, trace, visited, this.alMatrix, this.htVertex, traceMatrix2d);
 				if(ssdt > 0) {
 					ssdtMatrix2d.set(tIIndex, tJIndex, ssdt);
 					traceMatrix2d.set(tIIndex, tJIndex, trace);
@@ -342,7 +343,7 @@ public class SSD {
 	 * @return
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private int computeRecur(Event tI, Event tJ, DoubleMatrix2D ssdtMatrix2d, ArrayList<String> trace, 
+	private int computeRecur(CompletePrefixUnfolding cpu, Event tI, Event tJ, DoubleMatrix2D ssdtMatrix2d, ArrayList<String> trace, 
 				ArrayList<String> visited, ArrayList<String> alMatrix, 
 				Hashtable<String, HashSet<IBPNode>> htVertex, 
 				ObjectMatrix2D traceMatrix2d) {
@@ -366,7 +367,8 @@ public class SSD {
 		//start, add tI to visited
 		visited.add(tIId);
 		//compute ssd recursively (sequential, exclusive, parallel)
-		HashSet<String> hsTISuccPlace = this.getTransitionSuccSet(tI, htVertex);
+		HashSet<String> hsTISuccPlace = this.getTransitionSuccSet(cpu, tI, htVertex);
+//		HashSet<String> hsTISuccPlace = this.getPostConditionWithCut(cpu, tI);
 		int nTISuccPlace = hsTISuccPlace.size();
 		if(nTISuccPlace == 1) {
 			//sequential or exclusive, tI has only one output place
@@ -396,7 +398,7 @@ public class SSD {
 					}
 				}
 				ArrayList<String> succTrace = new ArrayList<String>();
-				int succSSDT = this.computeRecur(tPSuccTran, tJ, ssdtMatrix2d, succTrace, visited, alMatrix, htVertex, traceMatrix2d);
+				int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, visited, alMatrix, htVertex, traceMatrix2d);
 //				if(succSSDT == -3) {
 //					return -3;
 //				} else if(!tPSuccTran.isInvisibleTask()/* || newTi.getAttribute("skip") != null*/) {
@@ -428,7 +430,7 @@ public class SSD {
 						ArrayList<String> succTrace = new ArrayList<String>();
 						ArrayList<String> tmpVisited = new ArrayList<String>();
 						tmpVisited.addAll(visitedCopy);
-						int succSSDT = this.computeRecur(tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
+						int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
 						if(succSSDT != -3) {
 //							if(!tPSuccTran.isInvisibleTask()/* || newTi.getAttribute("skip") != null*/) {
 //								++succSSDT;
@@ -454,54 +456,72 @@ public class SSD {
 				return minSuccSSDT;
 			}
 		} else if(nTISuccPlace > 1) {
-			//parallel, tI has more than one output place
-			Iterator<String> itTISuccPlaceId = hsTISuccPlace.iterator();
-			int nTotalSSDT = 0;
-			int nParallel = 0;
-			ArrayList<ArrayList<String>> alSuccTrace = new ArrayList<ArrayList<String>>();
-			ArrayList<String> visitedCopy = new ArrayList<String>();
-			visitedCopy.addAll(visited);
-			while(itTISuccPlaceId.hasNext()) {
-				Iterator<IBPNode> itTISuccPlace = htVertex.get(itTISuccPlaceId.next()).iterator();
-				Condition pTISuccPlace = (Condition) itTISuccPlace.next();
+			// for cut off events, tI has 2 corresponding places
+			if (cpu.getCutoffEvents().contains(tI)) {
+				//sequential or exclusive, tI has only one output place
+				Iterator<IBPNode> itTI = htVertex.get(tIId).iterator();
+				Condition pTISuccPlace = null;
+				while(itTI.hasNext()) {
+					Event e = (Event) itTI.next();
+					for (Condition eSucc : e.getPostConditions()) {
+						Iterator<Condition> iESuccMappedContions = eSucc.getMappingConditions().iterator();
+						while(iESuccMappedContions.hasNext()) {
+							Condition eSuccMappedContion = iESuccMappedContions.next();
+							if (!eSuccMappedContion.getName().equalsIgnoreCase(eSucc.getName())) {
+								pTISuccPlace = eSuccMappedContion;
+							}
+							
+						}
+					}
+				}
+				
+//				Condition pTISuccPlace = null;
+//				while(itTI.hasNext() && pTISuccPlace == null) {
+//					Iterator<Condition> itTISuccPlace = ((Event) itTI.next()).getPostConditions().iterator();
+//					while(itTISuccPlace.hasNext()) {
+//						pTISuccPlace = itTISuccPlace.next();
+//						break;
+//					}
+//				}
 				HashSet<String> hsPSuccTran = this.getPlaceSuccSet(pTISuccPlace, htVertex, true);
 				int nPSuccTran = hsPSuccTran.size();
-				ArrayList<String> tmpVisited = new ArrayList<String>();
-				tmpVisited.addAll(visitedCopy);
 				if(nPSuccTran == 0) {
-					//cannot reach tj, no action
+					//cannot reach tj, return infinity
+					return -3;
 				} else if(nPSuccTran == 1) {
 					//sequential
-					Iterator<String> itPSuccTranId = hsPSuccTran.iterator();
-					Event tPSuccTran = (Event) htVertex.get(itPSuccTranId.next()).iterator().next();
-					ArrayList<String> succTrace = new ArrayList<String>();
-					int succSSDT = this.computeRecur(tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
-					if(succSSDT != -3) {
-						nTotalSSDT += (1 + succSSDT);
-						++nParallel;
-//						if(tPSuccTran.isInvisibleTask()/* && newTi.getAttribute("skip") == null*/) {
-//							--nTotalSSDT;
-//						}
-						alSuccTrace.add(succTrace);
-					}
-					for(String s : tmpVisited) {
-						if(!visited.contains(s)) {
-							visited.add(s);
+					Iterator<IBPNode> itPlace = htVertex.get(pTISuccPlace.getName()).iterator();
+					Event tPSuccTran = null;
+					while(itPlace.hasNext() && tPSuccTran == null) {
+						Iterator<Event> itTSucc = ((Condition) itPlace.next()).getPostE().iterator();
+						while(itTSucc.hasNext()) {
+							tPSuccTran = itTSucc.next();
+							break;
 						}
+					}
+					ArrayList<String> succTrace = new ArrayList<String>();
+					int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, visited, alMatrix, htVertex, traceMatrix2d);
+					if(succSSDT == -3) {
+						return -3;
+					} else {
+						trace.add(tIId);
+						trace.addAll(succTrace);
+						return 1 + succSSDT;
 					}
 				} else {
 					//exclusive
-					Iterator<String> itPSuccTranId = hsPSuccTran.iterator();
 					int minSuccSSDT = -3;
 					ArrayList<String> tmpTrace = new ArrayList<String>();
-					while(itPSuccTranId.hasNext()) {
-						Iterator<IBPNode> itPSuccTran = htVertex.get(itPSuccTranId.next()).iterator();
+					ArrayList<String> visitedCopy = new ArrayList<String>();
+					visitedCopy.addAll(visited);
+					for(String pSuccTranId : hsPSuccTran) {
+						Iterator<IBPNode> itPSuccTran = htVertex.get(pSuccTranId).iterator();
 						if(itPSuccTran.hasNext()) {
 							Event tPSuccTran = (Event) itPSuccTran.next();
 							ArrayList<String> succTrace = new ArrayList<String>();
-							tmpVisited.clear();
-							tmpVisited.addAll(visited);
-							int succSSDT = this.computeRecur(tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
+							ArrayList<String> tmpVisited = new ArrayList<String>();
+							tmpVisited.addAll(visitedCopy);
+							int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
 							if(succSSDT != -3) {
 //								if(!tPSuccTran.isInvisibleTask()/* || newTi.getAttribute("skip") != null*/) {
 //									++succSSDT;
@@ -514,35 +534,110 @@ public class SSD {
 								}
 							}
 							for(String s : tmpVisited) {
-								if(!visited.contains(s)) {
+								if(!(visited.contains(s))) {
 									visited.add(s);
 								}
 							}
 						}
 					}
 					if(minSuccSSDT != -3) {
-						alSuccTrace.add(tmpTrace);
-						nTotalSSDT += minSuccSSDT;
-						++nParallel;	
+						trace.add(tIId);
+						trace.addAll(tmpTrace);
 					}
+					return minSuccSSDT;
 				}
 			}
-			if(nParallel == 0) {
-				return nTotalSSDT;
-			} else {
-				//get merge trace
-				ArrayList<String> parallelSuccTrace = new ArrayList<String>();
-				for(ArrayList<String> succTrace : alSuccTrace) {
-					for(String s : succTrace) {
-						if(parallelSuccTrace.isEmpty() || !parallelSuccTrace.contains(s)) {
-							parallelSuccTrace.add(s);
+			else {
+				//parallel, tI has more than one output place
+				Iterator<String> itTISuccPlaceId = hsTISuccPlace.iterator();
+				int nTotalSSDT = 0;
+				int nParallel = 0;
+				ArrayList<ArrayList<String>> alSuccTrace = new ArrayList<ArrayList<String>>();
+				ArrayList<String> visitedCopy = new ArrayList<String>();
+				visitedCopy.addAll(visited);
+				while(itTISuccPlaceId.hasNext()) {
+					Iterator<IBPNode> itTISuccPlace = htVertex.get(itTISuccPlaceId.next()).iterator();
+					Condition pTISuccPlace = (Condition) itTISuccPlace.next();
+					HashSet<String> hsPSuccTran = this.getPlaceSuccSet(pTISuccPlace, htVertex, true);
+					int nPSuccTran = hsPSuccTran.size();
+					ArrayList<String> tmpVisited = new ArrayList<String>();
+					tmpVisited.addAll(visitedCopy);
+					if(nPSuccTran == 0) {
+						//cannot reach tj, no action
+					} else if(nPSuccTran == 1) {
+						//sequential
+						Iterator<String> itPSuccTranId = hsPSuccTran.iterator();
+						Event tPSuccTran = (Event) htVertex.get(itPSuccTranId.next()).iterator().next();
+						ArrayList<String> succTrace = new ArrayList<String>();
+						int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
+						if(succSSDT != -3) {
+							nTotalSSDT += (1 + succSSDT);
+							++nParallel;
+	//						if(tPSuccTran.isInvisibleTask()/* && newTi.getAttribute("skip") == null*/) {
+	//							--nTotalSSDT;
+	//						}
+							alSuccTrace.add(succTrace);
+						}
+						for(String s : tmpVisited) {
+							if(!visited.contains(s)) {
+								visited.add(s);
+							}
+						}
+					} else {
+						//exclusive
+						Iterator<String> itPSuccTranId = hsPSuccTran.iterator();
+						int minSuccSSDT = -3;
+						ArrayList<String> tmpTrace = new ArrayList<String>();
+						while(itPSuccTranId.hasNext()) {
+							Iterator<IBPNode> itPSuccTran = htVertex.get(itPSuccTranId.next()).iterator();
+							if(itPSuccTran.hasNext()) {
+								Event tPSuccTran = (Event) itPSuccTran.next();
+								ArrayList<String> succTrace = new ArrayList<String>();
+								tmpVisited.clear();
+								tmpVisited.addAll(visited);
+								int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
+								if(succSSDT != -3) {
+	//								if(!tPSuccTran.isInvisibleTask()/* || newTi.getAttribute("skip") != null*/) {
+	//									++succSSDT;
+	//								}
+									++succSSDT;
+									if(minSuccSSDT == -3 || succSSDT < minSuccSSDT) {
+										tmpTrace.clear();
+										tmpTrace.addAll(succTrace);
+										minSuccSSDT = succSSDT;
+									}
+								}
+								for(String s : tmpVisited) {
+									if(!visited.contains(s)) {
+										visited.add(s);
+									}
+								}
+							}
+						}
+						if(minSuccSSDT != -3) {
+							alSuccTrace.add(tmpTrace);
+							nTotalSSDT += minSuccSSDT;
+							++nParallel;	
 						}
 					}
 				}
-				trace.add(tIId);
-				trace.addAll(parallelSuccTrace);
-				int tracelength = trace.size() - 1;
-				return tracelength;
+				if(nParallel == 0) {
+					return nTotalSSDT;
+				} else {
+					//get merge trace
+					ArrayList<String> parallelSuccTrace = new ArrayList<String>();
+					for(ArrayList<String> succTrace : alSuccTrace) {
+						for(String s : succTrace) {
+							if(parallelSuccTrace.isEmpty() || !parallelSuccTrace.contains(s)) {
+								parallelSuccTrace.add(s);
+							}
+						}
+					}
+					trace.add(tIId);
+					trace.addAll(parallelSuccTrace);
+					int tracelength = trace.size() - 1;
+					return tracelength;
+				}
 			}
 		} else {
 			//nSucc = 0, cannot reach tj
@@ -582,17 +677,34 @@ public class SSD {
 	 * @return the set of successor transitions
 	 */
 	@SuppressWarnings("rawtypes")
-	private HashSet<String> getTransitionSuccSet(Event event, Hashtable<String, HashSet<IBPNode>> htVertex) {
-		String tId = event.getName();
-		Iterator<IBPNode> itTran = htVertex.get(tId).iterator();
-		HashSet<String> succId = new HashSet<String>();
-		while(itTran.hasNext()) {
-			Iterator<Condition> itSucc = ((Event) itTran.next()).getPostConditions().iterator();
-			while(itSucc.hasNext()) {
-				succId.add(itSucc.next().getName());
+	private HashSet<String> getTransitionSuccSet(CompletePrefixUnfolding cpu, Event event, Hashtable<String, HashSet<IBPNode>> htVertex) {
+//		String tId = event.getName();
+//		Iterator<IBPNode> itTran = htVertex.get(tId).iterator();
+//		HashSet<String> succId = new HashSet<String>();
+//		while(itTran.hasNext()) {
+//			Iterator<Condition> itSucc = ((Event) itTran.next()).getPostConditions().iterator();
+//			while(itSucc.hasNext()) {
+//				succId.add(itSucc.next().getName());
+//			}
+//		}
+//		return succId;
+		
+		HashSet<String> postConditions = new HashSet<String>();
+		if (cpu.getCutoffEvents().contains(event)) {
+			for (Condition eSucc : event.getPostConditions()) {
+				Iterator<Condition> iESuccMappedContions = eSucc.getMappingConditions().iterator();
+				while(iESuccMappedContions.hasNext()) {
+					Condition eSuccMappedContion = iESuccMappedContions.next();
+					postConditions.add(eSuccMappedContion.getName());
+				}
 			}
 		}
-		return succId;
+		else {
+			for (Condition eSucc: event.getPostConditions()) {
+				postConditions.add(eSucc.getName());
+			}
+		}
+		return postConditions;
 	}
 	
 	/**
@@ -697,6 +809,7 @@ public class SSD {
 
 //			ICoSet<BPNode, Condition, Event, Flow, Node, Place, Transition, Marking> ePostConditions = e.getPostConditions();
 			for (Condition eSucc : e.getPostConditions()) {
+				int eCondiIndex = alMatrix.indexOf(eSucc.getName());
 				Iterator<Condition> iESuccMappedContions = eSucc.getMappingConditions().iterator();
 				while(iESuccMappedContions.hasNext()) {
 					Condition eSuccMappedContion = iESuccMappedContions.next();
@@ -715,6 +828,18 @@ public class SSD {
 							}
 						}
 					}
+					
+//					Iterator<IBPNode> iContiCorReachList = reachVertex.get(eSuccMappedContion.getName()).iterator();
+//					while (iContiCorReachList.hasNext()) {
+//						IBPNode v = iContiCorReachList.next();
+//						int reachableIndex = alMatrix.indexOf(v.getName());
+//						reachMatrix2d.set(eCondiIndex, reachableIndex, 1.0);
+//						for (int i = 0; i <= eCondiIndex; i++) {
+//							if(reachMatrix2d.get(i, eCondiIndex) != 0.0) {
+//								reachMatrix2d.set(i, reachableIndex, 1.0);
+//							}
+//						}
+//					}
 //					int reachableIndex = alMatrix.indexOf(eSuccMappedContion.getName());
 //					reachMatrix2d.set(eIndex, reachableIndex, 1.0);
 				}

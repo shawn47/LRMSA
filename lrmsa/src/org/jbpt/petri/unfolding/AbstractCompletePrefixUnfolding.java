@@ -281,20 +281,52 @@ public class AbstractCompletePrefixUnfolding<BPN extends IBPNode<N>, C extends I
         return corr;
     }
 
+//    protected void addCutoff(E e, E corr) {
+//        this.cutoff2corr.put(e, corr);
+//        // add by Shudi Wang 15/05/26 to create mapping conditions
+//        while (this.cutoff2corr.containsKey(corr)) {
+//            corr = this.cutoff2corr.get(corr);
+//        }
+//        for (C newC : e.getPostConditions()) {
+//            newC.setCutoffPost(true);
+//            for (C oldC : corr.getLocalConfiguration().getCut()) {
+//                if (oldC.getPlace() == newC.getPlace()) {
+//                    if (oldC.getMappingConditions() == null) {
+//                        oldC.setMappingConditions(new HashSet<C>());
+//                        oldC.getMappingConditions().add(oldC);
+//                    }
+//                    oldC.getMappingConditions().add(newC);
+//                    newC.setMappingConditions(oldC.getMappingConditions());
+//                    newC.setCorrespondingCondition(oldC);
+//                }
+//            }
+//        }
+//    }
     protected void addCutoff(E e, E corr) {
         this.cutoff2corr.put(e, corr);
         // add by Shudi Wang 15/05/26 to create mapping conditions
         while (this.cutoff2corr.containsKey(corr)) {
             corr = this.cutoff2corr.get(corr);
         }
-        for (C newC : e.getPostConditions()) {
-            newC.setCutoffPost(true);
-            for (C oldC : corr.getLocalConfiguration().getCut()) {
-                if (oldC.getPlace() == newC.getPlace()) {
-                    if (oldC.getMappingConditions() == null) {
+        for (C newC : e.getLocalConfiguration().getCut()/*e.getPostConditions()*/)
+        {
+            //must have been cut-off
+            if(newC.getPostE().size() > 0)
+                continue;
+
+            for (C oldC : corr.getLocalConfiguration().getCut()/*corr.getPostConditions()*/)
+            {
+                //find one but should be itself
+                if (oldC.getPlace() == newC.getPlace() && oldC != newC)
+                {
+                    newC.setCutoffPost(true);
+
+                    if (oldC.getMappingConditions() == null)
+                    {
                         oldC.setMappingConditions(new HashSet<C>());
                         oldC.getMappingConditions().add(oldC);
                     }
+
                     oldC.getMappingConditions().add(newC);
                     newC.setMappingConditions(oldC.getMappingConditions());
                     newC.setCorrespondingCondition(oldC);

@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Map.Entry;
 
@@ -195,6 +196,12 @@ public class Main {
 		OutputStream image2 = new FileOutputStream(filePath3);
 		dpe2.export(po2, image2);
 		
+		SSD ssd = new SSD();
+		ssd.initSSD();
+		DoubleMatrix2D lcaMatrixOriNet = ssd.getLCA(cpu);
+		ArrayList<String> alOrder_cfp = new ArrayList<String>();
+		DoubleMatrix2D ssdMatrix = ssd.computeSSD(cpu, alOrder_cfp);
+		
 	}
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
@@ -205,7 +212,9 @@ public class Main {
 //		String path = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
 //		String fileName = "simple_and.pnml";
 //		adl.modModels(path);
-		lrmsaTest();
+		String filePrefix = "/Users/shawn/Documents/LAB/开题/exp/myModels/simple_loop_prom";
+		lrmsaGraph(filePrefix);
+//		lrmsaTest();
+		
 	}
-
 }
