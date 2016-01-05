@@ -191,8 +191,10 @@ public class SSD {
 		for(Event t : alTrans) {
 			HashSet<String> hsSuccPlaceId = this.getTransitionSuccSet(cpu, t, this.htVertex);
 			if(hsSuccPlaceId.size() > 1) {
-				//parallel structure, pass
-				continue;
+				if (!cpu.getCutoffEvents().contains(t)) {
+					//parallel structure, pass
+					continue;
+				}
 			}
 			String tId = t.getName();
 			if(visitedTrans.contains(tId)) {
@@ -476,7 +478,7 @@ public class SSD {
 						Iterator<Condition> iESuccMappedContions = eSucc.getMappingConditions().iterator();
 						while(iESuccMappedContions.hasNext()) {
 							Condition eSuccMappedContion = iESuccMappedContions.next();
-							if (!eSuccMappedContion.getName().equalsIgnoreCase(eSucc.getName())) {
+							if (!eSuccMappedContion.getName().equalsIgnoreCase(eSucc.getName()) && !eSuccMappedContion.getPostE().isEmpty()) {
 								pTISuccPlace = eSuccMappedContion;
 							}
 							

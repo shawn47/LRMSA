@@ -1,0 +1,14 @@
+SSD Class
+
+Things to be considered later.
+====================================
+Line 482
+for cutoffevents, I choose the one whose postEventSet is not empty to be the considered post condition. This may cause error when 1 place in the origin petri net mapped with many cutoffconditions. We need to prove that in the cutoffcondition set, there is only one condition whose post event set is not empty.
+
+Basic method description.
+====================================
+1. We change the origin petri-net into complete prefix unfolding net.
+2. We calculate the SSD(shortest succession distance) of every event in the cpu net.
+3. We consider the events in the mis-order log one by one to resemble a valid trace.
+
+In the 3rd step, at the begining we choose the event as the first child of the trace backbone in the multi-set which is correspoding with the start evnet node in the cpu net. Then we compare the left events in the multi-set with the last child of the trace backbone we have got. If the size of the candidate set is 1, that is simple. If the size of the candidate set is more than 1, we need to consider the relation between the candidate nodes. Loop structure(maybe with X-or split structure) or And-split structure may cause the situation. If the relation between the candidate nodes and parrel, we can choose in any way. If node A in the candidate set can reach to node B but not revearsely, we should choose node A. If the nodes can reach to each other, we should play a test on the estimatation with 1 forward on. That means we use the SSD A to B and B to A to estimate the cost overall.
