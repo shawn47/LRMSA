@@ -26,13 +26,40 @@ public class SSD {
 	private Hashtable<String, HashSet<IBPNode>> htVertex;
 	public Hashtable<String, HashSet<String>> hVertex;
 	public ArrayList<String> alMatrix;
+	public ArrayList<IBPNode> alVertex;
+	public int n;
+	public DoubleMatrix2D lcaMatrix2d;
 	
 	@SuppressWarnings("rawtypes")
-	public void initSSD() {
+	public void initSSD(CompletePrefixUnfolding cpu) {
 		this.alMatrix = new ArrayList<String>();
 		this.hVertex = new Hashtable<String, HashSet<String>>();
 		//row and col of matrix -> identifier
 		this.htVertex = new Hashtable<String, HashSet<IBPNode>>();
+		
+		this.alVertex = new ArrayList<IBPNode>();
+		this.alVertex.addAll(cpu.getEvents());
+		this.alVertex.addAll(cpu.getConditions());
+		this.alMatrix.clear();
+		this.htVertex.clear();
+//		ArrayList<String> alMatrix = new ArrayList<String>();
+		//row and col of matrix -> identifier
+//		this.htVertex = new Hashtable<String, HashSet<IBPNode>>();
+		for(IBPNode v : this.alVertex) {
+			if(!this.alMatrix.contains(v.getName())) {
+				this.hVertex.put(v.getPetriNetNode().getName(), new HashSet<String>());
+				this.htVertex.put(v.getName(), new HashSet<IBPNode>());
+				this.alMatrix.add(v.getName());
+			}
+			this.hVertex.get(v.getPetriNetNode().getName()).add(v.getName());
+			this.htVertex.get(v.getName()).add(v);
+		}
+//		ArrayList<String> alSkipTasks = this.getSkipInvisibleTasks(pn, this.htVertex);
+		
+		
+		//the row and col of the following matrix are the same with the key of alMatrix, 0...n-1
+		this.n = this.htVertex.size();
+		this.lcaMatrix2d = DoubleFactory2D.sparse.make(this.n, this.n, 0);
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -114,31 +141,13 @@ public class SSD {
 	
 	@SuppressWarnings("rawtypes")
 	public DoubleMatrix2D computeSSD(CompletePrefixUnfolding cpu, ArrayList<String> alOrder) {
-		ArrayList<IBPNode> alVertex = new ArrayList<IBPNode>();
-		alVertex.addAll(cpu.getEvents());
-		alVertex.addAll(cpu.getConditions());
-		this.alMatrix.clear();
-		this.htVertex.clear();
-//		ArrayList<String> alMatrix = new ArrayList<String>();
-		//row and col of matrix -> identifier
-//		this.htVertex = new Hashtable<String, HashSet<IBPNode>>();
-		for(IBPNode v : alVertex) {
-			if(!this.alMatrix.contains(v.getName())) {
-				this.htVertex.put(v.getName(), new HashSet<IBPNode>());
-				this.alMatrix.add(v.getName());
-			}
-			this.htVertex.get(v.getName()).add(v);
-		}
-//		ArrayList<String> alSkipTasks = this.getSkipInvisibleTasks(pn, this.htVertex);
 		
 		
-		//the row and col of the following matrix are the same with the key of alMatrix, 0...n-1
-		int n = this.htVertex.size();
-		
-		DoubleMatrix2D anceMatrix2dONet = this.getReachMatrixCPU(cpu, n, this.alMatrix, this.htVertex);
+		DoubleMatrix2D anceMatrix2dONet = this.getReachMatrixCPU(cpu, this.n, this.alMatrix, this.htVertex);
 //		DoubleMatrix2D anceMatrix2dONet = this.getReachMatrix2d(cpu, n, this.alMatrix, htVertex);
 		
-		DoubleMatrix2D lcaMatrix2d = DoubleFactory2D.sparse.make(n, n, 0);
+//		DoubleMatrix2D lcaMatrix2d = DoubleFactory2D.sparse.make(n, n, 0);
+//		lcaMatrix2d = DoubleFactory2D.sparse.make(this.n, this.n, 0);
 //		ArrayList<Event> alVisibleTrans = new ArrayList<Event>();
 //		alVisibleTrans.addAll(cpu.)
 //		pn.getVisibleTasks();
@@ -161,8 +170,8 @@ public class SSD {
 				int maxLCAIndex = tIIndex < tJIndex ? tIIndex : tJIndex;
 				for(int pos = maxLCAIndex; pos > 0; --pos) {
 					if(anceMatrix2dONet.get(pos, tIIndex) == 1.0 && anceMatrix2dONet.get(pos, tJIndex) == 1.0) {
-						lcaMatrix2d.set(tIIndex, tJIndex, pos);
-						lcaMatrix2d.set(tJIndex, tIIndex, pos);
+						this.lcaMatrix2d.set(tIIndex, tJIndex, pos);
+						this.lcaMatrix2d.set(tJIndex, tIIndex, pos);
 						break;
 					}
 				}
@@ -272,7 +281,7 @@ public class SSD {
 					continue;
 				}
 				int tJIndex = this.alMatrix.indexOf(tJId);
-				int lcaIndex = (int)lcaMatrix2d.get(tIIndex, tJIndex);
+				int lcaIndex = (int)this.lcaMatrix2d.get(tIIndex, tJIndex);
 				if(lcaIndex != tIIndex && lcaIndex != tJIndex) {
 					Iterator<IBPNode> itVertex = this.htVertex.get(this.alMatrix.get(lcaIndex)).iterator();
 					if(itVertex.hasNext()) {

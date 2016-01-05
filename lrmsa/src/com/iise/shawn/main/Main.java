@@ -35,18 +35,23 @@ public class Main {
 	public static void lrmsaTest() throws Exception {
 		// input multi-set of activities
 		ArrayList<String> multisetOfAct = new ArrayList<String>();
-		multisetOfAct.add("T0");
-		multisetOfAct.add("T5");
 		multisetOfAct.add("T3");
-		multisetOfAct.add("T2");
 		multisetOfAct.add("T1");
+		multisetOfAct.add("T1");
+		multisetOfAct.add("T2");
+		multisetOfAct.add("T2");
+		multisetOfAct.add("T2");
+		multisetOfAct.add("T0");
+		multisetOfAct.add("T6");
 		multisetOfAct.add("T4");
-//		multisetOfAct.add("T6");
+		multisetOfAct.add("T4");
+		multisetOfAct.add("T5");
 		// input model file
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_xor_split.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and.pnml";
-		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and_skip_task.pnml";
-		
+//		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and_skip_task.pnml";
+//		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/simple_loop_prom.pnml";
+		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/double_loop_nested.pnml";
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet p1 = pnmlImport.read(new FileInputStream(new File(modelFile)));
 		
@@ -56,8 +61,8 @@ public class Main {
 		CompletePrefixUnfolding cpu = new CompletePrefixUnfolding(ns);
 		
 		SSD ssd = new SSD();
-		ssd.initSSD();
-		DoubleMatrix2D lcaMatrixOriNet = ssd.getLCA(cpu);
+		ssd.initSSD(cpu);
+//		DoubleMatrix2D lcaMatrixOriNet = ssd.getLCA(cpu);
 		ArrayList<String> alOrder_cfp = new ArrayList<String>();
 		DoubleMatrix2D ssdMatrix = ssd.computeSSD(cpu, alOrder_cfp);
 		
@@ -197,7 +202,7 @@ public class Main {
 		dpe2.export(po2, image2);
 		
 		SSD ssd = new SSD();
-		ssd.initSSD();
+//		ssd.initSSD();
 		DoubleMatrix2D lcaMatrixOriNet = ssd.getLCA(cpu);
 		ArrayList<String> alOrder_cfp = new ArrayList<String>();
 		DoubleMatrix2D ssdMatrix = ssd.computeSSD(cpu, alOrder_cfp);
@@ -212,9 +217,9 @@ public class Main {
 //		String path = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
 //		String fileName = "simple_and.pnml";
 //		adl.modModels(path);
-		String filePrefix = "/Users/shawn/Documents/LAB/开题/exp/myModels/simple_loop_prom";
-		lrmsaGraph(filePrefix);
-//		lrmsaTest();
+//		String filePrefix = "/Users/shawn/Documents/LAB/开题/exp/myModels/simple_loop_prom";
+//		lrmsaGraph(filePrefix);
+		lrmsaTest();
 		
 	}
 }
