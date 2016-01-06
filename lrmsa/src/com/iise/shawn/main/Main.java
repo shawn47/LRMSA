@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -68,44 +67,36 @@ public class Main {
 		dpe2.export(po2, image2);
 	}
 	
+//	public static void modModels(String path) throws Exception {
+//        PnmlImport pnmlImport = new PnmlImport();
+//        File folder = new File(path);
+//        File[] files = folder.listFiles();
+//        for(File file : files) {
+//        		if (!file.getName().startsWith(".")) {
+//	            FileInputStream input = new FileInputStream(file);
+//	            System.out.println(file.getAbsolutePath());
+//	            PetriNet pn = pnmlImport.read(input);
+//	            input.close();
+//	            pn.setName(file.getName());
+//	            for(Transition t : pn.getTransitions()) {
+//	                t.setLogEvent(new LogEvent(t.getIdentifier(), "auto"));
+//	            }
+//	            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
+//	            PnmlWriter.write(false, true, pn, writer);
+//	            writer.close();
+//        		}
+//        }
+//    }
+	
 	public static void lrmsaTest() throws Exception {
-		// input multi-set of activities
-		ArrayList<String> multisetOfAct = new ArrayList<String>();
-//		multisetOfAct.add("T3");
-//		multisetOfAct.add("T1");
-//		multisetOfAct.add("T1");
-//		multisetOfAct.add("T2");
-//		multisetOfAct.add("T2");
-//		multisetOfAct.add("T2");
-//		multisetOfAct.add("T0");
-//		multisetOfAct.add("T6");
-//		multisetOfAct.add("T4");
-//		multisetOfAct.add("T4");
-//		multisetOfAct.add("T5");
-		multisetOfAct.add("A");
-		multisetOfAct.add("B");
-		multisetOfAct.add("B");
-		multisetOfAct.add("B");
-		multisetOfAct.add("C");
-		multisetOfAct.add("C");
-		multisetOfAct.add("D");
-		multisetOfAct.add("E");
-		multisetOfAct.add("F");
-		multisetOfAct.add("G");
-		multisetOfAct.add("G");
-		multisetOfAct.add("I");
-		multisetOfAct.add("I");
-		multisetOfAct.add("J");
-		multisetOfAct.add("J");
-		multisetOfAct.add("K");
 		// input model file
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_xor_split.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and_skip_task.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/simple_loop_prom.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/double_loop_nested.pnml";
-		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/Double_Loop_XOR.pnml";
-		
+//		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/Double_Loop_XOR.pnml";
+		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/test/Petrinet1.pnml";
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet p1 = pnmlImport.read(new FileInputStream(new File(modelFile)));
 		
@@ -117,6 +108,7 @@ public class Main {
 		ArrayList<String> alOrder_cfp = new ArrayList<String>();
 		DoubleMatrix2D ssdMatrix = ssd.computeSSD(cpu, alOrder_cfp);
 		
+		// input multi-set of activities
 		GenerateTrace gTrace = new GenerateTrace();
 		gTrace.init();
 		gTrace.generateTrace(modelFile, "file");
@@ -216,27 +208,12 @@ public class Main {
 			}
 			System.out.println(validTrace);
 		}
-		
-		
-		
-//		Map<String, Integer> multiset = new HashMap<String, Integer>();
-//		for (int i = 0; i < multisetOfAct.size(); i++) {
-//			if (!multiset.containsKey(multisetOfAct.get(i))) {
-//				multiset.put(multisetOfAct.get(i), 1);
-//			}
-//			else {
-//				int count = multiset.get(multisetOfAct.get(i));
-//				multiset.put(multisetOfAct.get(i), ++count);
-//			}
-//		}
-		
-		
-		
 	}
 
 	public static void main(String[] args) throws Exception {
 //		String filePrefix = "/Users/shawn/Documents/LAB/开题/exp/myModels/simple_loop_prom";
 //		lrmsaGraph(filePrefix);
+//		modModels("/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/test");
 		lrmsaTest();
 	}
 }
