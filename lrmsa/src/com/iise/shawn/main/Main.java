@@ -93,10 +93,10 @@ public class Main {
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_xor_split.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/simple_and_skip_task.pnml";
-//		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/simple_loop_prom.pnml";
+		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/simple_loop_prom.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/double_loop_nested.pnml";
 //		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/Double_Loop_XOR.pnml";
-		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/test/Petrinet1.pnml";
+//		String modelFile = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/test/Petrinet1.pnml";
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet p1 = pnmlImport.read(new FileInputStream(new File(modelFile)));
 		
