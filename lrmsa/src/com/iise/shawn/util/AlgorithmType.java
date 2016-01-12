@@ -1,0 +1,5 @@
+package com.iise.shawn.util;
+
+public enum AlgorithmType {
+	alignment
+}

@@ -20,7 +20,7 @@ public class AlignmentAlgorithm{
 			endsList.add(t.getIdentifier());
 		}
 		if(!endsList.contains(eventLog.getLast())){
-			if(endsList.size()==1){
+			if(endsList.size() == 1){
 				eventLog.add(endsList.iterator().next());
 			}
 		}
@@ -44,6 +44,7 @@ public class AlignmentAlgorithm{
 		net = ptnet;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public LinkedList<Place> findMarking(LinkedList<Transition> trace){
 		LinkedList<Place> marking = new LinkedList<Place>();
 		marking.add((Place) net.getSource());
@@ -73,9 +74,10 @@ public class AlignmentAlgorithm{
 	 * @param depth
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public LinkedList<Transition> branch(LinkedList<Transition> sigmaK, LinkedList<Transition> visit, LinkedList<String> trace, int k,int depth){
 		//System.out.println(sigmaK+" "+trace+" "+k+" "+depth);
-		long nowTime = System.currentTimeMillis();
+//		long nowTime = System.currentTimeMillis();
 		LinkedList<Transition> tauMin = new LinkedList<Transition>();
 		boolean infiniteTauMin = true;
 		if(k==trace.size()){
@@ -115,6 +117,12 @@ public class AlignmentAlgorithm{
 				}
 				LinkedList<Transition> newVisit = new LinkedList<Transition>();
 				newVisit.addAll(visit);
+				if (trace.indexOf(t.getIdentifier()) != -1) {
+					trace.remove(t.getIdentifier());
+				}
+				else {
+					System.out.println("error");
+				}
 				newVisit.add(t);
 				LinkedList<Transition> tau = new LinkedList<Transition>();
 				tau.addAll(sigmaK);
