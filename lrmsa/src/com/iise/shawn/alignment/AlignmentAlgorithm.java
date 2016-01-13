@@ -75,7 +75,7 @@ public class AlignmentAlgorithm{
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public LinkedList<Transition> branch(LinkedList<Transition> sigmaK, LinkedList<Transition> visit, LinkedList<String> trace, int k, int depth){
+	public LinkedList<Transition> branch(LinkedList<Transition> sigmaK, LinkedList<Transition> visit, LinkedList<String> trace, int k, int depth, int[] count){
 		// System.out.println(sigmaK+" "+trace+" "+k+" "+depth);
 //		long nowTime = System.currentTimeMillis();
 		LinkedList<Transition> tauMin = new LinkedList<Transition>();
@@ -108,13 +108,14 @@ public class AlignmentAlgorithm{
 			tau.addAll(sigmaK);
 			tau.add(trans);
 			//System.out.println("tau:"+tau);
-			LinkedList<Transition> tau2 = branch(tau, new LinkedList<Transition>(), trace, k + 1, 0);
+			LinkedList<Transition> tau2 = branch(tau, new LinkedList<Transition>(), trace, k + 1, 0, count);
 			//System.out.println("tau2:"+tau2);
 			if ((k + 1) == trace.size()) {
 				return tau2;
 			}
 			else {
-				System.out.println("backtrack!");
+				count[0]++;
+//				System.out.println("backtrack!");
 			}
 		}
 		for(Transition t:postTransList){
@@ -139,10 +140,11 @@ public class AlignmentAlgorithm{
 				LinkedList<Transition> tau = new LinkedList<Transition>();
 				tau.addAll(sigmaK);
 				tau.add(t);
-				LinkedList<Transition> tau2 = branch(tau, newVisit, trace, k, depth + 1);
+				LinkedList<Transition> tau2 = branch(tau, newVisit, trace, k, depth + 1, count);
 				//System.out.println("branch:"+tau2);
 				if(tau2 == null){
 					trace.add(nodeIndex, t.getIdentifier());
+					count[0]++;
 					continue;
 				}else{
 					if(infiniteTauMin){
@@ -162,9 +164,9 @@ public class AlignmentAlgorithm{
  		return tauMin;
 	}
 	
-	public LinkedList<Transition> repair(PetriNet net,LinkedList<String> eventLog){
+	public LinkedList<Transition> repair(PetriNet net,LinkedList<String> eventLog, int[] count){
 		startTime = System.currentTimeMillis();
 		LinkedList<Transition> sigmaK = new LinkedList<Transition>();
-		return branch(sigmaK, new LinkedList<Transition>(), eventLog, 0, 0);
+		return branch(sigmaK, new LinkedList<Transition>(), eventLog, 0, 0, count);
 	}
 }
