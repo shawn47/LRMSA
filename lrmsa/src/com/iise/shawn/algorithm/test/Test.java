@@ -1,10 +1,16 @@
 package com.iise.shawn.algorithm.test;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,6 +42,8 @@ public class Test {
 	private static Random ran = new Random(1);
 	private static GenerateTrace gTrace = new GenerateTrace();
 	
+	private static String dataFileName;
+	
 	public static LinkedList<String> randomError(ArrayList<String> eventLog, double percent){
 		LinkedList<String> log = new LinkedList<String>();
 		log.addAll(eventLog);
@@ -59,9 +67,22 @@ public class Test {
 		return log;
 	}
 	
-	public static void initializeAlgorithm(PetriNet model){
+	public static void initializeAlgorithm(PetriNet model, String modelName, String dataPath) throws IOException{
+//		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm");
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
+		
+		dataFileName = dataPath + modelName + "_" + dateFormat.format(date) + ".txt";
+		
+		File output = new File(dataFileName);
+		FileWriter fw = new FileWriter(output);
+		BufferedWriter bw = new BufferedWriter(fw);
+		
 		System.out.println("============= init... ============= ");
+		bw.write("============= init... ============= \n");
 		long startTime = 0, endTime = 0;
+		
 		HashMap<String,Transition> transMapModel = IndexUtil.getTransMap(model);
 		aA = new AlignmentAlgorithm();
 		aA.setNet(model);
@@ -74,6 +95,8 @@ public class Test {
 		CompletePrefixUnfolding cpu = new CompletePrefixUnfolding(ns);
 		endTime = System.nanoTime();
 		System.out.println("===== end Getting CPU Status ===== ");
+		System.out.println("getting CPU time consumed: " + (endTime - startTime));
+		bw.write("CPU Time Consumed:\t" + (endTime - startTime) + "\n");
 		
 		SSD ssd = new SSD();
 		ssd.initSSD(cpu);
@@ -84,22 +107,32 @@ public class Test {
 		endTime = System.nanoTime();
 		System.out.println("===== end SSD Computation Status ===== ");
 		System.out.println("init SSD time consumed: " + (endTime - startTime));
+		bw.write("SSD Time Consumed:\t" + (endTime - startTime) + "\n");
 		mA.setModel(model);
 		mA.setCPU(cpu);
 		mA.setSSD(ssd);
 		mA.setSSDMatrix(ssdMatrix);
 		mA.setOrderCPU(alOrder_cfp);
 		System.out.println("============= init accomplished ============= ");
+		bw.write("============= init accomplished ============= \n");
+		bw.close();
+		fw.close();
 	}
 	
 	
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void test(PetriNet model, String logRoute,
+	public static void test(PetriNet model, String dataPath,
 			int randomTime, double errorPercent, AlgorithmType algoType) throws Exception{
-		long startTime = 0, endTime = 0;
+		long startTime = 0, endTime = 0, delta1 = 0, delta2 = 0;
+		float rateSum = 0;
 		LinkedList<Transition> tau = null;
 		List<String> rtn = null;
+		
+		// record experiment data
+		File output = new File(dataFileName);
+		FileWriter fw = new FileWriter(output, true);
+		BufferedWriter bw = new BufferedWriter(fw);
 		
 //		String modelName = logRoute.substring(logRoute.lastIndexOf("/")+1, logRoute.indexOf(".pnml.mxml"));
 //		LinkedList<LinkedList<String>> eventLogs = FileReaderUtil.readMxmlLog(logRoute);
@@ -133,8 +166,10 @@ public class Test {
 		}
 		else if (algoType == AlgorithmType.debug) {
 			System.out.println("============= Comparision Status ============= ");
+			bw.write("============= Comparision Status ============= \n");
 		}
-		
+		float[] timeRate = new float[gTrace.traceList.size()];
+		int index = 0;
 		for (ArrayList<String> eventLog : gTrace.traceList) {
 			Comparator cmp = Collections.reverseOrder();  
 			LinkedList<String> log = new LinkedList<String>();
@@ -174,7 +209,6 @@ public class Test {
 				startTime = System.nanoTime();
 				rtn = mA.repair(multiset);
 				endTime = System.nanoTime();
-				
 
 				System.out.println("result log: " + rtn);
 				System.out.println("time consumed: " + (endTime - startTime));
@@ -183,34 +217,62 @@ public class Test {
 				System.out.println("raw log: " + log);
 				System.out.println("raw multiset: " + multiset);
 				System.out.println("===== for Alignment ===== ");
+				bw.write("raw log:\t" + log + "\n");
+				bw.write("raw multiset:\t" + multiset + "\n");
+				bw.write("===== for Alignment ===== \n");
+				
 				int[] count = new int[1];
 				count[0] = 0;
+				
 				startTime = System.nanoTime();
 				tau = aA.repair(model, log, count);
 				endTime = System.nanoTime();
+				delta1 = endTime - startTime;
 				
 				System.out.println("result log: " + tau);
 				System.out.println("backtrack num: " + count[0]);
-				System.out.println("time consumed for Alignment: " + (endTime - startTime));
+				System.out.println("time consumed for Alignment: " + delta1);
+				bw.write("result log:\t" + tau + "\n");
+//				bw.write("backtrack num:\t" + count[0] + "\n");
+				bw.write("time consumed for Alignment:\t" + delta1 + "\n");
 				
 				System.out.println("===== for MyAlgo ===== ");
+				bw.write("===== for MyAlgo ===== \n");
+				
 				startTime = System.nanoTime();
 				rtn = mA.repair(multiset);
 				endTime = System.nanoTime();
+				delta2 = endTime - startTime;
+				
 				System.out.println("result log: " + rtn);
-				System.out.println("time consumed for myAlgo: " + (endTime - startTime));
+				System.out.println("time consumed for myAlgo: " + delta2);
+				bw.write("result log:\t" + rtn + "\n");
+				bw.write("time consumed for myAlgo:\t" + delta2 + "\n");
+				bw.write("===== time rate ===== \n");
+				bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1 / delta2)));
+				timeRate[index] = ((float)delta1 / delta2);
+				index++;
 			}
 		}
+		bw.write("============= Comparision Accomplished ============= \n");
+		
+		for (float delta : timeRate) {
+			rateSum += delta;
+		}
+		
+		bw.write(String.format("average time consumed rate(Alignment / MyAlgo):\t%.2f\n", rateSum / gTrace.traceList.size()));
+		bw.close();
+		fw.close();
 	}
 	
-	public static void repair(String petriNetPath, String logPath) throws Exception	
+	public static void repair(String dirPath, String modelName, String postfix, String dataPath) throws Exception	
 	{
 		PnmlImport pnmlImport = new PnmlImport();
-		PetriNet model = pnmlImport.read(new FileInputStream(new File(petriNetPath)));
-		initializeAlgorithm(model);
+		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
+		initializeAlgorithm(model, modelName, dataPath);
 //		test(model, logPath, 1, 0, AlgorithmType.alignment);
 //		test(model, logPath, 1, 0, AlgorithmType.myAlgorithm);
-		test(model, logPath, 1, 0, AlgorithmType.debug);
+		test(model, dataPath, 1, 0, AlgorithmType.debug);
 	}
 	
 	public static void main(String args[]) throws Exception
@@ -218,14 +280,18 @@ public class Test {
 //		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/BeehiveZ+jBPT+PIPE/bpm/笑尘代码/data/causal/FI.403.pnml";
 //		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/double_loop_nested.pnml";
 //		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/BeehiveZ+jBPT+PIPE/bpm/笑尘代码/data/all_Loop/FI.106.pnml";
-		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/Double_Loop_XOR.pnml";
+//		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/Double_Loop_XOR.pnml";
+//		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/XOR_SPLIT_AND_SPLIT.pnml";
 //		String logPath = "/Users/shawn/Documents/LAB/开题/exp/BeehiveZ+jBPT+PIPE/bpm/笑尘代码/data/causal/log/FI.403.pnml.mxml";
 		
-		String logPath = "/Users/shawn/Documents/LAB/开题/exp/BeehiveZ+jBPT+PIPE/bpm/笑尘代码/data/all_Loop/log/FI.106.pnml.mxml";
+		String dirPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
+		String dataPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/data/";
+		String modelName = "Tripple_Loop_XOR";
+		String postfix = ".pnml";
 		
 		gTrace.init();
-		gTrace.generateTrace(petriNetPath, "file");
+		gTrace.generateTrace(dirPath + modelName + postfix, "file");
 		
-		repair(petriNetPath, logPath);
+		repair(dirPath, modelName, postfix, dataPath);
 	}
 }

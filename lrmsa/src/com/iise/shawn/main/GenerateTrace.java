@@ -30,7 +30,6 @@ public class GenerateTrace {
 	}
 	
 	public void generateTrace(String modelFile, String fileName) throws Exception {
-		System.out.println("============= start to generate logs =============");
 		PnmlImport pnmlimport = new PnmlImport();
 		CTree ctree = null;
 		PetriNet petrinet = null;
