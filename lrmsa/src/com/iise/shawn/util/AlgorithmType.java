@@ -1,5 +1,5 @@
 package com.iise.shawn.util;
 
 public enum AlgorithmType {
-	alignment
+	alignment, myAlgorithm, debug
 }

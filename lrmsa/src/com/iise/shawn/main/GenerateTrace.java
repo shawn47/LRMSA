@@ -56,12 +56,12 @@ public class GenerateTrace {
 			while(iTTreeNode.hasNext()) {
 				TTreeNode node = iTTreeNode.next();
 				trace.add(node.getTransition().getName());
-				System.out.print(node.getTransition().getName() + " ");
+//				System.out.print(node.getTransition().getName() + " ");
 			}
 			this.traceList.add(trace);
-			System.out.println("");
+//			System.out.println("");
 		}
-		System.out.println("============= complete generating logs =============");
+//		System.out.println("============= complete generating logs =============");
 	}
 	
 	public void generateMisOrderTraceList() {

@@ -1,4 +1,4 @@
-package com.iise.shawn.alignment;
+package com.iise.shawn.algorithm;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -164,7 +164,7 @@ public class AlignmentAlgorithm{
  		return tauMin;
 	}
 	
-	public LinkedList<Transition> repair(PetriNet net,LinkedList<String> eventLog, int[] count){
+	public LinkedList<Transition> repair(PetriNet net, LinkedList<String> eventLog, int[] count) {
 		startTime = System.currentTimeMillis();
 		LinkedList<Transition> sigmaK = new LinkedList<Transition>();
 		return branch(sigmaK, new LinkedList<Transition>(), eventLog, 0, 0, count);
