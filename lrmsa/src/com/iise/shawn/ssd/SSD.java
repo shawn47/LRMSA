@@ -665,17 +665,19 @@ public class SSD {
 	 */
 	@SuppressWarnings("rawtypes")
 	private HashSet<String> getPlaceSuccSet(Condition place, Hashtable<String, HashSet<IBPNode>> htVertex, boolean hasInv) {
-		Iterator<IBPNode> itPlace = htVertex.get(place.getName()).iterator();
 		HashSet<String> succId = new HashSet<String>();
-		while(itPlace.hasNext()) {
-			Iterator<Event> itSucc = ((Condition) itPlace.next()).getPostE().iterator();
-			while(itSucc.hasNext()) {
-				Event pSucc = itSucc.next();
-				String pSuccId = pSucc.getName();
-//				if(hasInv == false && pSucc.isInvisibleTask()) {
-//					continue;
-//				}
-				succId.add(pSuccId);
+		if (place != null) {
+			Iterator<IBPNode> itPlace = htVertex.get(place.getName()).iterator();
+			while(itPlace.hasNext()) {
+				Iterator<Event> itSucc = ((Condition) itPlace.next()).getPostE().iterator();
+				while(itSucc.hasNext()) {
+					Event pSucc = itSucc.next();
+					String pSuccId = pSucc.getName();
+	//				if(hasInv == false && pSucc.isInvisibleTask()) {
+	//					continue;
+	//				}
+					succId.add(pSuccId);
+				}
 			}
 		}
 		return succId;

@@ -168,16 +168,20 @@ public class Test {
 			System.out.println("============= Comparision Status ============= ");
 			bw.write("============= Comparision Status ============= \n");
 		}
+		
 		float[] timeRate = new float[gTrace.traceList.size()];
 		int index = 0;
 		for (ArrayList<String> eventLog : gTrace.traceList) {
-			Comparator cmp = Collections.reverseOrder();  
+//			Comparator cmp = Collections.reverseOrder(); 
+//			Comparator cmp = Collections.shuffle();
 			LinkedList<String> log = new LinkedList<String>();
 			for (String item : eventLog) {
 				log.add(item);
 			}
 			// log is now in misorder
-			Collections.sort(log, cmp);
+//			Collections.sort(log, cmp);
+			Collections.shuffle(log);
+			
 			// change log into multiset
 			Map<String, Integer> multiset = new HashMap<String, Integer>();
 			for (int i = 0; i < log.size(); i++) {
@@ -195,8 +199,15 @@ public class Test {
 				count[0] = 0;
 				System.out.println("raw log: " + log);
 				
+				LinkedList<String> log2 = new LinkedList<String>();
+				String input = "G, J, H, J, B, G, D, I, C, G, K, D, H, A, B, B, H, C";
+				String[] inputArray = input.split(", ");
+				for (String itm : inputArray) {
+					log2.add(itm);
+				}
+				
 				startTime = System.nanoTime();
-				tau = aA.repair(model, log, count);
+				tau = aA.repair(model, log2, count);
 				endTime = System.nanoTime();
 
 				System.out.println("result log: " + tau);
@@ -224,10 +235,12 @@ public class Test {
 				int[] count = new int[1];
 				count[0] = 0;
 				
+				
 				startTime = System.nanoTime();
 				tau = aA.repair(model, log, count);
 				endTime = System.nanoTime();
 				delta1 = endTime - startTime;
+				
 				
 				System.out.println("result log: " + tau);
 				System.out.println("backtrack num: " + count[0]);
@@ -270,8 +283,8 @@ public class Test {
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
 		initializeAlgorithm(model, modelName, dataPath);
-//		test(model, logPath, 1, 0, AlgorithmType.alignment);
-//		test(model, logPath, 1, 0, AlgorithmType.myAlgorithm);
+//		test(model, dataPath, 1, 0, AlgorithmType.alignment);
+//		test(model, dataPath, 1, 0, AlgorithmType.myAlgorithm);
 		test(model, dataPath, 1, 0, AlgorithmType.debug);
 	}
 	
@@ -286,7 +299,7 @@ public class Test {
 		
 		String dirPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
 		String dataPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/data/";
-		String modelName = "Tripple_Loop_XOR";
+		String modelName = "5_choice_1_loop_2";
 		String postfix = ".pnml";
 		
 		gTrace.init();

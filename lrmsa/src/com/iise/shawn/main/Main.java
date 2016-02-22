@@ -27,7 +27,7 @@ import cern.colt.matrix.DoubleMatrix2D;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
-		String fileName = "/Users/shawn/Documents/LAB/开题/exp/myModels/XOR_SPLIT_AND_SPLIT";
+		String fileName = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/5_choice_1_loop_2";
 		String filePath1 = fileName + ".pnml";
 		String filePath2 = fileName + ".png";
 		String filePath3 = fileName + "-cfp.png";
