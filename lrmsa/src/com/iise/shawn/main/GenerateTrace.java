@@ -54,6 +54,9 @@ public class GenerateTrace {
 			ArrayList<String> trace = new ArrayList<String>();
 			while(iTTreeNode.hasNext()) {
 				TTreeNode node = iTTreeNode.next();
+				if (node.getTransition().getName().startsWith("INV_") || node.getTransition().getName().equals("")) {
+					continue;
+				}
 				trace.add(node.getTransition().getName());
 //				System.out.print(node.getTransition().getName() + " ");
 			}
