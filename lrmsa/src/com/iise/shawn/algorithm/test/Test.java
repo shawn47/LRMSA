@@ -199,15 +199,15 @@ public class Test {
 				count[0] = 0;
 				System.out.println("raw log: " + log);
 				
-				LinkedList<String> log2 = new LinkedList<String>();
-				String input = "G, J, H, J, B, G, D, I, C, G, K, D, H, A, B, B, H, C";
-				String[] inputArray = input.split(", ");
-				for (String itm : inputArray) {
-					log2.add(itm);
-				}
+//				LinkedList<String> log2 = new LinkedList<String>();
+//				String input = "G, J, H, J, B, G, D, I, C, G, K, D, H, A, B, B, H, C";
+//				String[] inputArray = input.split(", ");
+//				for (String itm : inputArray) {
+//					log2.add(itm);
+//				}
 				
 				startTime = System.nanoTime();
-				tau = aA.repair(model, log2, count);
+				tau = aA.repair(model, log, count);
 				endTime = System.nanoTime();
 
 				System.out.println("result log: " + tau);
@@ -246,7 +246,7 @@ public class Test {
 				System.out.println("backtrack num: " + count[0]);
 				System.out.println("time consumed for Alignment: " + delta1);
 				bw.write("result log:\t" + tau + "\n");
-//				bw.write("backtrack num:\t" + count[0] + "\n");
+				bw.write("backtrack num:\t" + count[0] + "\n");
 				bw.write("time consumed for Alignment:\t" + delta1 + "\n");
 				
 				System.out.println("===== for MyAlgo ===== ");
@@ -284,8 +284,8 @@ public class Test {
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
 		initializeAlgorithm(model, modelName, dataPath);
 //		test(model, dataPath, 1, 0, AlgorithmType.alignment);
-		test(model, dataPath, 1, 0, AlgorithmType.myAlgorithm);
-//		test(model, dataPath, 1, 0, AlgorithmType.debug);
+//		test(model, dataPath, 1, 0, AlgorithmType.myAlgorithm);
+		test(model, dataPath, 1, 0, AlgorithmType.debug);
 	}
 	
 	public static void main(String args[]) throws Exception
@@ -299,7 +299,7 @@ public class Test {
 		
 		String dirPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
 		String dataPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/data/";
-		String modelName = "Tripple_Loop_XOR";
+		String modelName = "5_choice_1_loop_2";
 		String postfix = ".pnml";
 		
 		gTrace.init();

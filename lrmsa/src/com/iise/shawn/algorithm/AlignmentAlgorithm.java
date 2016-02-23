@@ -139,36 +139,55 @@ public class AlignmentAlgorithm{
 //				}
 				LinkedList<Transition> newVisit = new LinkedList<Transition>();
 				newVisit.addAll(visit);
-				nodeIndex = trace.lastIndexOf(t.getIdentifier());
-//				nodeIndex = trace.indexOf(t.getIdentifier());
-				if (nodeIndex != -1) {
-					trace.remove(nodeIndex);
-//					trace.remove(t.getIdentifier());
+				if (t.getIdentifier().startsWith("INV_")) {
+					newVisit.add(t);
+					LinkedList<Transition> tau = new LinkedList<Transition>();
+					tau.addAll(sigmaK);
+					tau.add(t);
+					LinkedList<Transition> tau2 = branch(tau, newVisit, trace, k, depth + 1, count, flag);
+					if(tau2 == null || tau2.isEmpty()){
+						count[0]++;
+						continue;
+					}else{
+						if(infiniteTauMin){
+							tauMin = tau2;
+							infiniteTauMin = false;
+						}else{
+							if(tau2.size() < tauMin.size()){
+								tauMin = tau2;
+							}
+						}
+						break;
+					}
 				}
 				else {
-//					System.out.println("error");
-					continue;
-				}
-				newVisit.add(t);
-				LinkedList<Transition> tau = new LinkedList<Transition>();
-				tau.addAll(sigmaK);
-				tau.add(t);
-				LinkedList<Transition> tau2 = branch(tau, newVisit, trace, k, depth + 1, count, flag);
-				//System.out.println("branch:"+tau2);
-				if(tau2 == null || tau2.isEmpty()){
-					trace.add(nodeIndex, t.getIdentifier());
-					count[0]++;
-					continue;
-				}else{
-					if(infiniteTauMin){
-						tauMin = tau2;
-						infiniteTauMin = false;
-					}else{
-						if(tau2.size() < tauMin.size()){
-							tauMin = tau2;
-						}
+					nodeIndex = trace.lastIndexOf(t.getIdentifier());
+					if (nodeIndex != -1) {
+						trace.remove(nodeIndex);
 					}
-					break;
+					else {
+						continue;
+					}
+					newVisit.add(t);
+					LinkedList<Transition> tau = new LinkedList<Transition>();
+					tau.addAll(sigmaK);
+					tau.add(t);
+					LinkedList<Transition> tau2 = branch(tau, newVisit, trace, k, depth + 1, count, flag);
+					if(tau2 == null || tau2.isEmpty()){
+						trace.add(nodeIndex, t.getIdentifier());
+						count[0]++;
+						continue;
+					}else{
+						if(infiniteTauMin){
+							tauMin = tau2;
+							infiniteTauMin = false;
+						}else{
+							if(tau2.size() < tauMin.size()){
+								tauMin = tau2;
+							}
+						}
+						break;
+					}
 				}
 			}
 		}
@@ -183,6 +202,14 @@ public class AlignmentAlgorithm{
 		LinkedList<Transition> sigmaK = new LinkedList<Transition>();
 		boolean[] flag = new boolean[1];
 		flag[0] = false;
-		return branch(sigmaK, new LinkedList<Transition>(), eventLog, 0, 0, count, flag);
+		LinkedList<Transition> retOriginLog = branch(sigmaK, new LinkedList<Transition>(), eventLog, 0, 0, count, flag);
+		LinkedList<Transition> ret = new LinkedList<Transition>();
+		for (Transition node : retOriginLog) {
+			if (node.getIdentifier().startsWith("INV_")) {
+				continue;
+			}
+			ret.add(node);
+		}
+		return ret;
 	}
 }
