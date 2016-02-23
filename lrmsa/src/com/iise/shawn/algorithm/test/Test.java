@@ -113,6 +113,7 @@ public class Test {
 		mA.setSSD(ssd);
 		mA.setSSDMatrix(ssdMatrix);
 		mA.setOrderCPU(alOrder_cfp);
+		mA.initSSDMatrixNew();
 		System.out.println("============= init accomplished ============= ");
 		bw.write("============= init accomplished ============= \n");
 		bw.close();
