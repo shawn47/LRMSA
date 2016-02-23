@@ -10,7 +10,6 @@ import org.jbpt.petri.unfolding.CompletePrefixUnfolding;
 import org.jbpt.petri.unfolding.Condition;
 import org.jbpt.petri.unfolding.Event;
 import org.jbpt.petri.unfolding.IBPNode;
-import org.jbpt.petri.unfolding.ICoSet;
 
 import cern.colt.matrix.DoubleFactory2D;
 import cern.colt.matrix.DoubleMatrix2D;
@@ -54,7 +53,7 @@ public class SSD {
 			this.hVertex.get(v.getPetriNetNode().getName()).add(v.getName());
 			this.htVertex.get(v.getName()).add(v);
 		}
-//		ArrayList<String> alSkipTasks = this.getSkipInvisibleTasks(pn, this.htVertex);
+		ArrayList<String> alSkipTasks = getSkipInvisibleTasks(cpu, this.htVertex);
 		
 		
 		//the row and col of the following matrix are the same with the key of alMatrix, 0...n-1
@@ -87,7 +86,7 @@ public class SSD {
 		DoubleMatrix2D anceMatrix2dONet = this.getReachMatrixCPU(cpu, n, this.alMatrix, htVertex);
 		
 		DoubleMatrix2D lcaMatrix2d = DoubleFactory2D.sparse.make(n, n, 0);
-//		ArrayList<Transition> alVisibleTrans = pn.getVisibleTasks();
+		ArrayList<Event> alVisibleTrans = getVisibleTasks(cpu);
 		
 		ArrayList<Event> alTrans = new ArrayList<Event>();
 		alTrans.addAll(0, cpu.getEvents());
@@ -148,8 +147,8 @@ public class SSD {
 		
 //		DoubleMatrix2D lcaMatrix2d = DoubleFactory2D.sparse.make(n, n, 0);
 //		lcaMatrix2d = DoubleFactory2D.sparse.make(this.n, this.n, 0);
-//		ArrayList<Event> alVisibleTrans = new ArrayList<Event>();
-//		alVisibleTrans.addAll(cpu.)
+		ArrayList<Event> alVisibleTrans = new ArrayList<Event>();
+		alVisibleTrans.addAll(getVisibleTasks(cpu));
 //		pn.getVisibleTasks();
 		
 		ArrayList<Event> alTrans = new ArrayList<Event>();
@@ -228,14 +227,14 @@ public class SSD {
 			}
 			visitedTrans.add(t.getName());
 		}
-
+		ArrayList<String> alSkipTasks = getSkipInvisibleTasks(cpu, this.htVertex);
 		//add invisible tasks of skip type into set of visible tasks
-//		for(String s : alSkipTasks) {
-//			Iterator<ModelGraphVertex> it = this.htVertex.get(s).iterator();
-//			while(it.hasNext()) {
-//				alVisibleTrans.add((Transition) it.next());
-//			}
-//		}
+		for(String s : alSkipTasks) {
+			Iterator<IBPNode> it = this.htVertex.get(s).iterator();
+			while(it.hasNext()) {
+				alVisibleTrans.add((Event) it.next());
+			}
+		}
 		
 		//compute ssdt between other pairs of transitions recursively
 		ArrayList<String> alVisitedITrans = new ArrayList<String>();
@@ -421,6 +420,9 @@ public class SSD {
 //					trace.addAll(succTrace);
 //					return succSSDT;
 //				}
+				/**
+				 * 
+				 
 				if(succSSDT == -3) {
 					return -3;
 				} else {
@@ -428,6 +430,19 @@ public class SSD {
 					trace.addAll(succTrace);
 					return 1 + succSSDT;
 				}
+				*/
+				if(succSSDT == -3) {
+					return -3;
+				} else if (!tPSuccTran.getName().startsWith("INV_")) {
+					trace.add(tIId);
+					trace.addAll(succTrace);
+					return 1 + succSSDT;
+				} else {
+					trace.add(tIId);
+					trace.addAll(succTrace);
+					return 1 + succSSDT;
+				}
+				
 			} else {
 				//exclusive
 				int minSuccSSDT = -3;
@@ -443,10 +458,14 @@ public class SSD {
 						tmpVisited.addAll(visitedCopy);
 						int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
 						if(succSSDT != -3) {
-//							if(!tPSuccTran.isInvisibleTask()/* || newTi.getAttribute("skip") != null*/) {
-//								++succSSDT;
-//							}
+							if(!tPSuccTran.getName().startsWith("INV_")/* || newTi.getAttribute("skip") != null*/) {
+								++succSSDT;
+							}
+							/**
+							 * 
+							 
 							++succSSDT;
+							*/
 							if(minSuccSSDT == -3 || succSSDT < minSuccSSDT) {
 								tmpTrace.clear();
 								tmpTrace.addAll(succTrace);
@@ -534,10 +553,14 @@ public class SSD {
 							tmpVisited.addAll(visitedCopy);
 							int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
 							if(succSSDT != -3) {
-//								if(!tPSuccTran.isInvisibleTask()/* || newTi.getAttribute("skip") != null*/) {
-//									++succSSDT;
-//								}
+								if(!tPSuccTran.getName().startsWith("INV_")/* || newTi.getAttribute("skip") != null*/) {
+									++succSSDT;
+								}
+								/**
+								 * 
+								 
 								++succSSDT;
+								*/
 								if(minSuccSSDT == -3 || succSSDT < minSuccSSDT) {
 									tmpTrace.clear();
 									tmpTrace.addAll(succTrace);
@@ -584,9 +607,9 @@ public class SSD {
 						if(succSSDT != -3) {
 							nTotalSSDT += (1 + succSSDT);
 							++nParallel;
-	//						if(tPSuccTran.isInvisibleTask()/* && newTi.getAttribute("skip") == null*/) {
-	//							--nTotalSSDT;
-	//						}
+							if(tPSuccTran.getName().startsWith("INV_")/* && newTi.getAttribute("skip") == null*/) {
+								--nTotalSSDT;
+							}
 							alSuccTrace.add(succTrace);
 						}
 						for(String s : tmpVisited) {
@@ -608,10 +631,14 @@ public class SSD {
 								tmpVisited.addAll(visited);
 								int succSSDT = this.computeRecur(cpu, tPSuccTran, tJ, ssdtMatrix2d, succTrace, tmpVisited, alMatrix, htVertex, traceMatrix2d);
 								if(succSSDT != -3) {
-	//								if(!tPSuccTran.isInvisibleTask()/* || newTi.getAttribute("skip") != null*/) {
-	//									++succSSDT;
-	//								}
+									if(!tPSuccTran.getName().startsWith("INV_")/* || newTi.getAttribute("skip") != null*/) {
+										++succSSDT;
+									}
+									/**
+									 * 
+									 
 									++succSSDT;
+									*/
 									if(minSuccSSDT == -3 || succSSDT < minSuccSSDT) {
 										tmpTrace.clear();
 										tmpTrace.addAll(succTrace);
@@ -673,14 +700,42 @@ public class SSD {
 				while(itSucc.hasNext()) {
 					Event pSucc = itSucc.next();
 					String pSuccId = pSucc.getName();
-	//				if(hasInv == false && pSucc.isInvisibleTask()) {
-	//					continue;
-	//				}
+					if (hasInv == false && pSucc.getName().startsWith("INV_")) {
+						continue;
+					}
+					if(hasInv == false && pSucc.getName().startsWith("INV_")) {
+						continue;
+					}
 					succId.add(pSuccId);
 				}
 			}
 		}
 		return succId;
+	}
+	
+	/**
+	 * get all the predecessor transitions of a place
+	 * @param transition
+	 * @param htVertex
+	 * @return the set of predecessor transitions
+	 */
+	private HashSet<String> getTransitionPredSet(CompletePrefixUnfolding cpu, Event event, Hashtable<String, HashSet<IBPNode>> htVertex) {
+		String tId = event.getName();
+		Iterator<IBPNode> itTran = htVertex.get(tId).iterator();
+		HashSet<String> predId = new HashSet<String>();
+		while(itTran.hasNext()) {
+			@SuppressWarnings("unchecked")
+			IBPNode iTran = itTran.next();
+			if (iTran instanceof Event) {
+				Iterator<Condition> itVPred = ((Event) iTran).getPreConditions().iterator();
+				while(itVPred.hasNext()) {
+					Condition vPred = itVPred.next();
+					String vPredId = vPred.getName();
+					predId.add(vPredId);
+				}
+			}
+		}
+		return predId;
 	}
 	
 	/**
@@ -973,6 +1028,140 @@ public class SSD {
 			startVertex.addAll(descVertex);
 		}
 		return reachMatrix2d;
+	}
+	
+	public ArrayList<Event> getInvisibleTasks(CompletePrefixUnfolding cpu) {
+		ArrayList<Event> result = new ArrayList<Event>();
+		Iterator allTransitions = cpu.getEvents().iterator();
+		while (allTransitions.hasNext()) {
+			Event currentTransition = (Event) allTransitions.next();
+			if (currentTransition.getName().startsWith("INV_")) {
+				result.add(currentTransition);
+			}
+//			if (currentTransition.isInvisibleTask() == true) {
+//				result.add(currentTransition);
+//			}
+		}
+		return result;
+	}
+
+	/**
+	 * Retrieves the visible tasks contained in this net.
+	 * 
+	 * @return the list of those transitions that resemble visible tasks. The
+	 *         list may be empty if the model contains no visible tasks
+	 */
+	public ArrayList<Event> getVisibleTasks(CompletePrefixUnfolding cpu) {
+		ArrayList<Event> result = new ArrayList<Event>();
+		Iterator allTransitions = cpu.getEvents().iterator();
+		while (allTransitions.hasNext()) {
+			Event currentTransition = (Event) allTransitions.next();
+			if (!currentTransition.getName().startsWith("INV_")) {
+				result.add(currentTransition);
+			}
+//			if (currentTransition.isInvisibleTask() == false) {
+//				result.add(currentTransition);
+//			}
+		}
+		return result;
+	}
+	
+	/** 
+	 * Get a list of invisible tasks of skip type in a cfp
+	 * @param cfp
+	 * @param htVertex - the map of label->list(vertex)
+	 * @return list of invisible tasks of skip type
+	 */
+	private ArrayList<String> getSkipInvisibleTasks(CompletePrefixUnfolding cpu, Hashtable<String, HashSet<IBPNode>> htVertex) {
+		ArrayList<Event> alInvTasks = getInvisibleTasks(cpu);
+		ArrayList<String> visitedTasks = new ArrayList<String>();
+		ArrayList<String> alSkipTasks = new ArrayList<String>();
+		for(Event t : alInvTasks) {
+			if(visitedTasks.contains(t.getName())) {
+				continue;
+			}
+			visitedTasks.add(t.getName());
+			HashSet<String> tPredPlaceId = getTransitionPredSet(cpu, t, htVertex);
+			HashSet<String> tSuccPlaceId = getTransitionSuccSet(cpu, t, htVertex);
+			//if there is a trace from pred place to succ place other than the invisible task itself
+			//this invisible task is of skip type
+			boolean canReach = false;
+			for(String source : tPredPlaceId) {
+				for(String target : tSuccPlaceId) {
+					ArrayList<String> visited = new ArrayList<String>();
+					visited.add(t.getName());
+					if(this.canReach(source, target, htVertex, visited) == true) {
+						canReach = true;
+						break;
+					}
+				}
+				if(canReach == true) {
+					break;
+				}
+			}
+			if(canReach == true) {
+				Iterator<IBPNode> itInvTask = htVertex.get(t.getName()).iterator();
+				while(itInvTask.hasNext()) {
+					IBPNode v = itInvTask.next();
+//					v.setAttribute("skip", "skip");
+				}
+				alSkipTasks.add(t.getName());
+			}
+		}
+		return alSkipTasks;
+	}
+	
+	/**
+	 * Judge if there is a trace from a vertex to another
+	 * @param source - source vertex
+	 * @param target - target vertex
+	 * @param htVertex - the map of label->list(vertex)
+	 * @param visited - list of vertices which have been visited
+	 * @return a boolean type of value
+	 */
+	@SuppressWarnings("unchecked")
+	private boolean canReach(String source, String target, Hashtable<String, HashSet<IBPNode>> htVertex,
+			ArrayList<String> visited) {
+		HashSet<IBPNode> startNodes = htVertex.get(source);
+		while(startNodes.size() > 0) {
+			Iterator<IBPNode> iStart = startNodes.iterator();
+			ArrayList<String> exclude = new ArrayList<String>();
+			while(iStart.hasNext()) {
+				IBPNode v = iStart.next();
+				String vId = v.getName();
+				if(vId.split("-")[0].equals(target.split("-")[0])) {
+					return true;
+//				if(vId.equals(target)) {
+//					return true;
+				} else if(visited.contains(vId)) {
+					exclude.add(vId);
+					continue;
+				}
+				visited.add(vId);
+			}
+			//move forward one level
+			iStart = startNodes.iterator();
+			HashSet<IBPNode> descVertex = new HashSet<IBPNode>();
+			while(iStart.hasNext()) {
+				IBPNode v = iStart.next();
+				String vId = v.getName();
+				if(exclude.contains(vId)) {
+					continue;
+				}
+				if(visited.contains(vId)) {
+					if (v instanceof Event) {
+						descVertex.addAll(((Event) v).getPostConditions());
+					}
+					else if (v instanceof Condition) {
+						descVertex.addAll(((Condition) v).getPostE());
+					}
+					
+				}
+			}
+			startNodes = new HashSet<IBPNode>();
+			startNodes.addAll(descVertex);
+		}
+		return false;
 	}
 }
 

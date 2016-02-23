@@ -284,8 +284,8 @@ public class Test {
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
 		initializeAlgorithm(model, modelName, dataPath);
 //		test(model, dataPath, 1, 0, AlgorithmType.alignment);
-//		test(model, dataPath, 1, 0, AlgorithmType.myAlgorithm);
-		test(model, dataPath, 1, 0, AlgorithmType.debug);
+		test(model, dataPath, 1, 0, AlgorithmType.myAlgorithm);
+//		test(model, dataPath, 1, 0, AlgorithmType.debug);
 	}
 	
 	public static void main(String args[]) throws Exception
@@ -299,7 +299,7 @@ public class Test {
 		
 		String dirPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
 		String dataPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/data/";
-		String modelName = "5_choice_1_loop_2";
+		String modelName = "Tripple_Loop_XOR";
 		String postfix = ".pnml";
 		
 		gTrace.init();
