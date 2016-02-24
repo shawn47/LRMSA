@@ -65,13 +65,13 @@ public class Test {
 		return log;
 	}
 	
-	public static void initializeAlgorithm(PetriNet model, String modelName, String dataPath) throws IOException{
+	public static void initializeAlgorithm(PetriNet model, String modelName, String dataPath, int loopNum, AlgorithmType algoType) throws IOException{
 //		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm");
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
 		
-		dataFileName = dataPath + modelName + "_" + dateFormat.format(date) + ".txt";
+		dataFileName = dataPath + modelName + "_" + dateFormat.format(date) + "_" + loopNum + ".txt";
 		
 		File output = new File(dataFileName);
 		FileWriter fw = new FileWriter(output);
@@ -112,6 +112,7 @@ public class Test {
 		mA.setSSDMatrix(ssdMatrix);
 		mA.setOrderCPU(alOrder_cfp);
 		mA.initSSDMatrixNew();
+		bw.write("Trace Number:\t" + (gTrace.traceList.size()) + "\n");
 		System.out.println("============= init accomplished ============= ");
 		bw.write("============= init accomplished ============= \n");
 		bw.close();
@@ -120,8 +121,14 @@ public class Test {
 	
 	
 	
-	public static void test(PetriNet model, String dataPath,
-			int randomTime, double errorPercent, AlgorithmType algoType) throws Exception{
+	public static void test(String modelFilePath, PetriNet model, String modelName, String dataPath,
+			int loopNum, double errorPercent, AlgorithmType algoType) throws Exception{
+		
+		gTrace.init();
+		gTrace.generateTrace(modelFilePath, "file", loopNum);
+		
+		initializeAlgorithm(model, modelName, dataPath, loopNum, algoType);
+		
 		long startTime = 0, endTime = 0, delta1 = 0, delta2 = 0;
 		float rateSum = 0;
 		LinkedList<Transition> tau = null;
@@ -153,8 +160,12 @@ public class Test {
 				log.add(item);
 			}
 			// log is now in misorder
-//			Collections.sort(log, cmp);
 			Collections.shuffle(log);
+			String rawLogString = "";
+			for (int ievent = 0; ievent < log.size() - 1; ievent++) {
+				rawLogString += log.get(ievent) + ", ";
+			}
+			rawLogString += log.get(log.size() - 1);
 			
 			// change log into multiset
 			Map<String, Integer> multiset = new HashMap<String, Integer>();
@@ -171,17 +182,16 @@ public class Test {
 			if(algoType == AlgorithmType.alignment) {
 				int[] count = new int[1];
 				count[0] = 0;
-				System.out.println("raw log: " + log);
 				
-//				LinkedList<String> log2 = new LinkedList<String>();
-//				String input = "G, J, H, J, B, G, D, I, C, G, K, D, H, A, B, B, H, C";
-//				String[] inputArray = input.split(", ");
-//				for (String itm : inputArray) {
-//					log2.add(itm);
-//				}
-				
+				LinkedList<String> log2 = new LinkedList<String>();
+				String input = "I, K, C, G, B, H, H, G, F, C, H, G, C, H, J, I, E, B, H, A, J, B, G, G, I, B";
+				String[] inputArray = input.split(", ");
+				for (String itm : inputArray) {
+					log2.add(itm);
+				}
+				System.out.println("raw log: " + log2);
 				startTime = System.nanoTime();
-				tau = aA.repair(model, log, count);
+				tau = aA.repair(model, log2, count);
 				endTime = System.nanoTime();
 
 				System.out.println("result log: " + tau);
@@ -199,11 +209,6 @@ public class Test {
 				System.out.println("time consumed: " + (endTime - startTime));
 			}
 			else if (algoType == AlgorithmType.debug) {
-				
-				bw.write("raw log:\t" + log + "\n");
-				bw.write("raw multiset:\t" + multiset + "\n");
-				System.out.println("===== for MyAlgo ===== ");
-				bw.write("===== for MyAlgo ===== \n");
 				long delta2f = Long.MAX_VALUE;
 				for (int loop = 0; loop < 10; loop++) {
 					Map<String, Integer> multisetNewData = new HashMap<String, Integer>();
@@ -214,6 +219,11 @@ public class Test {
 							int count1 = multisetNewData.get(log.get(i));
 							multisetNewData.put(log.get(i), ++count1);
 						}
+					}
+					if (loop == 0) {
+						bw.write("raw multiset:\t" + multisetNewData + "\n");
+						System.out.println("===== for MyAlgo ===== ");
+						bw.write("===== for MyAlgo ===== \n");
 					}
 					startTime = System.nanoTime();
 					rtn = mA.repair2(multisetNewData);
@@ -230,23 +240,21 @@ public class Test {
 				bw.write("time consumed for myAlgo:\t" + delta2f + "\n");
 				
 				
-				System.out.println("raw log: " + log);
-				System.out.println("raw multiset: " + multiset);
-				System.out.println("===== for Alignment ===== ");
-				bw.write("===== for Alignment ===== \n");
-				
 				int[] count = new int[1];
 				count[0] = 0;
 				
 				long delta1f = Long.MAX_VALUE;
 				for (int loop = 0; loop < 10; loop++) {
 					LinkedList<String> logNew = new LinkedList<String>();
-					for (String item : eventLog) {
-						logNew.add(item);
+					String[] inputArray = rawLogString.split(", ");
+					for (String itm : inputArray) {
+						logNew.add(itm);
 					}
-					// log is now in misorder
-//					Collections.sort(log, cmp);
-					Collections.shuffle(logNew);
+					if (loop == 0) {
+						bw.write("raw log:\t" + logNew + "\n");
+						System.out.println("===== for Alignment ===== ");
+						bw.write("===== for Alignment ===== \n");
+					}
 					startTime = System.nanoTime();
 					tau = aA.repair(model, logNew, count);
 					endTime = System.nanoTime();
@@ -266,6 +274,22 @@ public class Test {
 				
 				bw.write("===== time rate ===== \n");
 				bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1f / delta2f)));
+				if (rtn.size() != tau.size()) {
+					bw.write("2 result is result? NO\n");
+				}
+				else {
+					int checkIndex = 0;
+					for (; checkIndex < tau.size(); checkIndex++) {
+						if (!rtn.get(checkIndex).equalsIgnoreCase(tau.get(checkIndex).getIdentifier())) {
+							bw.write("2 result is result? NO\n");
+							break;
+						}
+					}
+					if (checkIndex == tau.size()) {
+						bw.write("2 result is result? Yes\n");
+					}
+				}
+				
 				bw.write("\n");
 				timeRate[index] = ((float)delta1f / delta2f);
 				index++;
@@ -340,11 +364,10 @@ public class Test {
 	{
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
-		initializeAlgorithm(model, modelName, dataPath);
-//		test(model, dataPath, 1, 0, AlgorithmType.alignment);
-//		test(model, dataPath, 1, 0, AlgorithmType.myAlgorithm);
-		test(model, dataPath, 1, 0, AlgorithmType.debug);
-//		test(model, dataPath, 1, 0, AlgorithmType.optimization);
+//		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.alignment);
+//		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.myAlgorithm);
+		test(dirPath + modelName + postfix, model, modelName, dataPath, 4, 0, AlgorithmType.debug);
+//		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.optimization);
 	}
 	
 	public static void main(String args[]) throws Exception
@@ -360,9 +383,6 @@ public class Test {
 		String dataPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/data/";
 		String modelName = "Tripple_Loop_XOR";
 		String postfix = ".pnml";
-		
-		gTrace.init();
-		gTrace.generateTrace(dirPath + modelName + postfix, "file");
 		
 		repair(dirPath, modelName, postfix, dataPath);
 	}

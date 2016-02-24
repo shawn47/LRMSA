@@ -29,7 +29,7 @@ public class GenerateTrace {
 		this.multiSetList = new ArrayList<Map<String, Integer>>();
 	}
 	
-	public void generateTrace(String modelFile, String fileName) throws Exception {
+	public void generateTrace(String modelFile, String fileName, int loopNum) throws Exception {
 		PnmlImport pnmlimport = new PnmlImport();
 		CTree ctree = null;
 		PetriNet petrinet = null;
@@ -42,7 +42,7 @@ public class GenerateTrace {
 		ctree = generator.generateCTree();
 		TTreeGenerator ttg = new TTreeGenerator();
 
-		NewPtsSet nps2 = ttg.generatTTree(ctree, 3, fileName);
+		NewPtsSet nps2 = ttg.generatTTree(ctree, loopNum, fileName);
 		
 		Iterator<NewPtsSequence> traceList = nps2.getNPSet().iterator();
 		while (traceList.hasNext()) {

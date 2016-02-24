@@ -1,5 +1,7 @@
 package com.iise.shawn.algorithm;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -101,7 +103,8 @@ public class AlignmentAlgorithm{
 		Transition trans = transMap.get(trace.get(k));
 		
 		LinkedList<Place> marking = findMarking(sigmaK);
-		HashSet<Transition> postTransList = new HashSet<Transition>();
+//		HashSet<Transition> postTransList = new HashSet<Transition>();
+		LinkedList<Transition> postTransList = new LinkedList<Transition>();
 		for(Place p:marking){
 			postTransList.addAll(p.getSuccessors());
 		}
@@ -109,6 +112,7 @@ public class AlignmentAlgorithm{
 			LinkedList<Transition> tau = new LinkedList<Transition>();
 			tau.addAll(sigmaK);
 			tau.add(trans);
+//			System.out.println("+" + trans.getIdentifier());
 			//System.out.println("tau:"+tau);
 			LinkedList<Transition> tau2 = branch(tau, new LinkedList<Transition>(), trace, k + 1, 0, count, flag);
 			//System.out.println("tau2:"+tau2);
@@ -123,12 +127,34 @@ public class AlignmentAlgorithm{
 //			}
 			else {
 				count[0]++;
+//				System.out.println("-" + trans.getIdentifier());
 				if (flag[0]) {
 					return tau2;
 				}
 //				System.out.println("backtrack!");
 			}
 		}
+		
+		Comparator<Transition> cmp = new Comparator<Transition>() {  
+            @Override  
+            public int compare(Transition t1, Transition t2) {  
+                if (t1.getIdentifier().startsWith("INV_") && t2.getIdentifier().startsWith("INV_")) {
+                		return 0;
+                }
+                else if (t1.getIdentifier().startsWith("INV_") && !t2.getIdentifier().startsWith("INV_")) {
+                		return -1;
+                }
+                else if (!t1.getIdentifier().startsWith("INV_") && t2.getIdentifier().startsWith("INV_")) { 
+                		return 1;
+                }
+                else {
+                		return t1.getIdentifier().compareTo(t2.getIdentifier());
+                }  
+            }
+        }; 
+        
+        Collections.sort(postTransList, cmp);
+        
 		for(Transition t:postTransList){
 			if (t.getIdentifier().equalsIgnoreCase(trans.getIdentifier())) {
 				continue;
@@ -144,9 +170,11 @@ public class AlignmentAlgorithm{
 					LinkedList<Transition> tau = new LinkedList<Transition>();
 					tau.addAll(sigmaK);
 					tau.add(t);
+//					System.out.println("+" + t.getIdentifier());
 					LinkedList<Transition> tau2 = branch(tau, newVisit, trace, k, depth + 1, count, flag);
 					if(tau2 == null || tau2.isEmpty()){
 						count[0]++;
+//						System.out.println("-" + t.getIdentifier());
 						continue;
 					}else{
 						if(infiniteTauMin){
@@ -172,9 +200,11 @@ public class AlignmentAlgorithm{
 					LinkedList<Transition> tau = new LinkedList<Transition>();
 					tau.addAll(sigmaK);
 					tau.add(t);
+//					System.out.println("+" + t.getIdentifier());
 					LinkedList<Transition> tau2 = branch(tau, newVisit, trace, k, depth + 1, count, flag);
 					if(tau2 == null || tau2.isEmpty()){
 						trace.add(nodeIndex, t.getIdentifier());
+//						System.out.println("-" + t.getIdentifier());
 						count[0]++;
 						continue;
 					}else{
