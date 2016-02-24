@@ -184,7 +184,7 @@ public class MyAlgorithm {
 			validTrace.add(curAct);
 			Iterator<Entry<String, Integer>> iterCandidate = multiset.entrySet().iterator();
 			Iterator<String> ihVertex = ssd.hVertex.get(curAct).iterator();
-			String postAct = "";
+//			String postAct = "";
 			double distanceBetweenActivities = Double.MAX_VALUE;
 			HashSet<String> candidateNodes = new HashSet<String>();
 			while(ihVertex.hasNext()) {
@@ -202,13 +202,13 @@ public class MyAlgorithm {
 						double tempDistance = ssdMatrix.get(preActIndex, postActIndex);
 						if (tempDistance >= 0 && tempDistance < distanceBetweenActivities) {
 							distanceBetweenActivities = tempDistance;
-							postAct = entryCandidate.getKey();
+//							postAct = entryCandidate.getKey();
 							candidateNodes.clear();
 							candidateNodes.add(postActT);
 						}
 						else if (tempDistance >= 0 && tempDistance == distanceBetweenActivities) {
 							distanceBetweenActivities = tempDistance;
-							postAct = entryCandidate.getKey();
+//							postAct = entryCandidate.getKey();
 							candidateNodes.add(postActT);
 						}
 					}
@@ -266,7 +266,11 @@ public class MyAlgorithm {
 	}
 	
 	
-	public List<String> repair(Map<String, Integer> multiset) {
+	public List<String> repair2(Map<String, Integer> multiset) {
 		return repaireTrace2(multiset);
+	}
+	
+	public List<String> repair1(Map<String, Integer> multiset) {
+		return repaireTrace(multiset);
 	}
 }

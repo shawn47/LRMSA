@@ -9,7 +9,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -28,7 +27,6 @@ import com.iise.shawn.algorithm.MyAlgorithm;
 import com.iise.shawn.main.GenerateTrace;
 import com.iise.shawn.ssd.SSD;
 import com.iise.shawn.util.AlgorithmType;
-import com.iise.shawn.util.FileReaderUtil;
 import com.iise.shawn.util.IndexUtil;
 import com.iise.shawn.util.PetriNetConversion;
 
@@ -122,7 +120,6 @@ public class Test {
 	
 	
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void test(PetriNet model, String dataPath,
 			int randomTime, double errorPercent, AlgorithmType algoType) throws Exception{
 		long startTime = 0, endTime = 0, delta1 = 0, delta2 = 0;
@@ -134,31 +131,7 @@ public class Test {
 		File output = new File(dataFileName);
 		FileWriter fw = new FileWriter(output, true);
 		BufferedWriter bw = new BufferedWriter(fw);
-		
-//		String modelName = logRoute.substring(logRoute.lastIndexOf("/")+1, logRoute.indexOf(".pnml.mxml"));
-//		LinkedList<LinkedList<String>> eventLogs = FileReaderUtil.readMxmlLog(logRoute);
-//		for(LinkedList<String> eventLog:eventLogs){
-//			Comparator cmp = Collections.reverseOrder();  
-//			LinkedList<String> log = new LinkedList<String>();
-//			for (String item : eventLog) {
-//				log.add(item);
-//			}
-//			// sort the list
-//			Collections.sort(log, cmp); 
-//			System.out.println("raw log: " + log);
-//			long startTime = 0, endTime = 0;
-//			int count = 0;
-//			LinkedList<Transition> tau = null;
-//			if(algoType == AlgorithmType.alignment){
-//				startTime =  System.currentTimeMillis();
-//				tau = aA.repair(model, log);
-//				endTime =  System.currentTimeMillis();
-//			}
-//			System.out.println("result log: " + tau);
-//			System.out.println("time consumed: " + (endTime - startTime));
-//		}
-		
-//		gTrace.generateMisOrderTraceList();
+
 		if(algoType == AlgorithmType.alignment) {
 			System.out.println("============= Alignment Status ============= ");
 		}
@@ -219,49 +192,133 @@ public class Test {
 				System.out.println("raw log: " + multiset);
 				
 				startTime = System.nanoTime();
-				rtn = mA.repair(multiset);
+				rtn = mA.repair2(multiset);
 				endTime = System.nanoTime();
 
 				System.out.println("result log: " + rtn);
 				System.out.println("time consumed: " + (endTime - startTime));
 			}
 			else if (algoType == AlgorithmType.debug) {
+				
+				bw.write("raw log:\t" + log + "\n");
+				bw.write("raw multiset:\t" + multiset + "\n");
+				System.out.println("===== for MyAlgo ===== ");
+				bw.write("===== for MyAlgo ===== \n");
+				long delta2f = Long.MAX_VALUE;
+				for (int loop = 0; loop < 10; loop++) {
+					Map<String, Integer> multisetNewData = new HashMap<String, Integer>();
+					for (int i = 0; i < log.size(); i++) {if (!multisetNewData.containsKey(log.get(i))) {
+							multisetNewData.put(log.get(i), 1);
+						}
+						else {
+							int count1 = multisetNewData.get(log.get(i));
+							multisetNewData.put(log.get(i), ++count1);
+						}
+					}
+					startTime = System.nanoTime();
+					rtn = mA.repair2(multisetNewData);
+					endTime = System.nanoTime();
+					delta2 = endTime - startTime;
+					if (delta2 < delta2f) {
+						delta2f = delta2;
+					}
+				}
+				
+				System.out.println("result log: " + rtn);
+				System.out.println("time consumed for myAlgo: " + delta2f);
+				bw.write("result log:\t" + rtn + "\n");
+				bw.write("time consumed for myAlgo:\t" + delta2f + "\n");
+				
+				
 				System.out.println("raw log: " + log);
 				System.out.println("raw multiset: " + multiset);
 				System.out.println("===== for Alignment ===== ");
-				bw.write("raw log:\t" + log + "\n");
-				bw.write("raw multiset:\t" + multiset + "\n");
 				bw.write("===== for Alignment ===== \n");
 				
 				int[] count = new int[1];
 				count[0] = 0;
 				
-				
-				startTime = System.nanoTime();
-				tau = aA.repair(model, log, count);
-				endTime = System.nanoTime();
-				delta1 = endTime - startTime;
+				long delta1f = Long.MAX_VALUE;
+				for (int loop = 0; loop < 10; loop++) {
+					LinkedList<String> logNew = new LinkedList<String>();
+					for (String item : eventLog) {
+						logNew.add(item);
+					}
+					// log is now in misorder
+//					Collections.sort(log, cmp);
+					Collections.shuffle(logNew);
+					startTime = System.nanoTime();
+					tau = aA.repair(model, logNew, count);
+					endTime = System.nanoTime();
+					delta1 = endTime - startTime;
+					if (delta1 < delta1f) {
+						delta1f = delta1;
+					}
+				}
 				
 				
 				System.out.println("result log: " + tau);
 				System.out.println("backtrack num: " + count[0]);
-				System.out.println("time consumed for Alignment: " + delta1);
+				System.out.println("time consumed for Alignment: " + delta1f);
 				bw.write("result log:\t" + tau + "\n");
 				bw.write("backtrack num:\t" + count[0] + "\n");
-				bw.write("time consumed for Alignment:\t" + delta1 + "\n");
+				bw.write("time consumed for Alignment:\t" + delta1f + "\n");
 				
-				System.out.println("===== for MyAlgo ===== ");
-				bw.write("===== for MyAlgo ===== \n");
+				bw.write("===== time rate ===== \n");
+				bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1f / delta2f)));
+				bw.write("\n");
+				timeRate[index] = ((float)delta1f / delta2f);
+				index++;
+			}
+			else if (algoType == AlgorithmType.optimization) {
+				System.out.println("raw log: " + log);
+				System.out.println("raw multiset: " + multiset);
+				System.out.println("===== for old algo ===== ");
+				bw.write("raw log:\t" + log + "\n");
+				bw.write("raw multiset:\t" + multiset + "\n");
+				bw.write("===== for old algo ===== \n");
+				
+				Map<String, Integer> multisetOldData = new HashMap<String, Integer>();
+				Map<String, Integer> multisetNewData = new HashMap<String, Integer>();
+				for (int i = 0; i < log.size(); i++) {
+					if (!multisetOldData.containsKey(log.get(i))) {
+						multisetOldData.put(log.get(i), 1);
+					}
+					else {
+						int count = multisetOldData.get(log.get(i));
+						multisetOldData.put(log.get(i), ++count);
+					}
+					if (!multisetNewData.containsKey(log.get(i))) {
+						multisetNewData.put(log.get(i), 1);
+					}
+					else {
+						int count = multisetNewData.get(log.get(i));
+						multisetNewData.put(log.get(i), ++count);
+					}
+				}				
 				
 				startTime = System.nanoTime();
-				rtn = mA.repair(multiset);
+				rtn = mA.repair1(multisetOldData);
+				endTime = System.nanoTime();
+				delta1 = endTime - startTime;
+				
+				System.out.println("result log: " + rtn);
+				System.out.println("time consumed for old algo: " + delta2);
+				bw.write("result log:\t" + rtn + "\n");
+				bw.write("time consumed for old algo:\t" + delta2 + "\n");
+				
+				System.out.println("===== for new algo ===== ");
+				bw.write("===== for new algo ===== \n");
+				
+				startTime = System.nanoTime();
+				rtn = mA.repair2(multisetNewData);
 				endTime = System.nanoTime();
 				delta2 = endTime - startTime;
 				
 				System.out.println("result log: " + rtn);
-				System.out.println("time consumed for myAlgo: " + delta2);
+				System.out.println("time consumed for new algo: " + delta2);
 				bw.write("result log:\t" + rtn + "\n");
-				bw.write("time consumed for myAlgo:\t" + delta2 + "\n");
+				bw.write("time consumed for new algo:\t" + delta2 + "\n");
 				bw.write("===== time rate ===== \n");
 				bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1 / delta2)));
 				timeRate[index] = ((float)delta1 / delta2);
@@ -287,6 +344,7 @@ public class Test {
 //		test(model, dataPath, 1, 0, AlgorithmType.alignment);
 //		test(model, dataPath, 1, 0, AlgorithmType.myAlgorithm);
 		test(model, dataPath, 1, 0, AlgorithmType.debug);
+//		test(model, dataPath, 1, 0, AlgorithmType.optimization);
 	}
 	
 	public static void main(String args[]) throws Exception
@@ -300,7 +358,7 @@ public class Test {
 		
 		String dirPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
 		String dataPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/data/";
-		String modelName = "5_choice_1_loop_2";
+		String modelName = "Tripple_Loop_XOR";
 		String postfix = ".pnml";
 		
 		gTrace.init();

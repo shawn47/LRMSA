@@ -42,7 +42,7 @@ public class GenerateTrace {
 		ctree = generator.generateCTree();
 		TTreeGenerator ttg = new TTreeGenerator();
 
-		NewPtsSet nps2 = ttg.generatTTree(ctree, 2, fileName);
+		NewPtsSet nps2 = ttg.generatTTree(ctree, 3, fileName);
 		
 		Iterator<NewPtsSequence> traceList = nps2.getNPSet().iterator();
 		while (traceList.hasNext()) {
