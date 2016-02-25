@@ -366,7 +366,7 @@ public class Test {
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.alignment);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.myAlgorithm);
-		test(dirPath + modelName + postfix, model, modelName, dataPath, 4, 0, AlgorithmType.debug);
+		test(dirPath + modelName + postfix, model, modelName, dataPath, 3, 0, AlgorithmType.debug);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.optimization);
 	}
 	
@@ -381,7 +381,7 @@ public class Test {
 		
 		String dirPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
 		String dataPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/data/";
-		String modelName = "Tripple_Loop_XOR";
+		String modelName = "5_choice_1_loop_2";
 		String postfix = ".pnml";
 		
 		repair(dirPath, modelName, postfix, dataPath);
