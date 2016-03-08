@@ -127,6 +127,8 @@ public class Test {
 		gTrace.init();
 		gTrace.generateTrace(modelFilePath, "file", loopNum);
 		
+		System.out.println("total trace number:\t" + gTrace.traceList.size());
+		
 		initializeAlgorithm(model, modelName, dataPath, loopNum, algoType);
 		
 		long startTime = 0, endTime = 0, delta1 = 0, delta2 = 0;
@@ -140,13 +142,13 @@ public class Test {
 		BufferedWriter bw = new BufferedWriter(fw);
 
 		if(algoType == AlgorithmType.alignment) {
-			System.out.println("============= Alignment Status ============= ");
+//			System.out.println("============= Alignment Status ============= ");
 		}
 		else if (algoType == AlgorithmType.myAlgorithm) {
-			System.out.println("============= MyAlgorithm Status ============= ");
+//			System.out.println("============= MyAlgorithm Status ============= ");
 		}
 		else if (algoType == AlgorithmType.debug) {
-			System.out.println("============= Comparision Status ============= ");
+//			System.out.println("============= Comparision Status ============= ");
 			bw.write("============= Comparision Status ============= \n");
 		}
 		
@@ -183,15 +185,15 @@ public class Test {
 				int[] count = new int[1];
 				count[0] = 0;
 				
-				LinkedList<String> log2 = new LinkedList<String>();
-				String input = "I, K, C, G, B, H, H, G, F, C, H, G, C, H, J, I, E, B, H, A, J, B, G, G, I, B";
-				String[] inputArray = input.split(", ");
-				for (String itm : inputArray) {
-					log2.add(itm);
-				}
-				System.out.println("raw log: " + log2);
+//				LinkedList<String> log2 = new LinkedList<String>();
+//				String input = "I, K, C, G, B, H, H, G, F, C, H, G, C, H, J, I, E, B, H, A, J, B, G, G, I, B";
+//				String[] inputArray = input.split(", ");
+//				for (String itm : inputArray) {
+//					log2.add(itm);
+//				}
+				System.out.println("raw log: " + log);
 				startTime = System.nanoTime();
-				tau = aA.repair(model, log2, count);
+				tau = aA.repair(model, log, count);
 				endTime = System.nanoTime();
 
 				System.out.println("result log: " + tau);
@@ -209,6 +211,7 @@ public class Test {
 				System.out.println("time consumed: " + (endTime - startTime));
 			}
 			else if (algoType == AlgorithmType.debug) {
+				System.out.println((index + 1) + "th trace(" + gTrace.traceList.size() + ") complete " + ((double)(index + 1) / gTrace.traceList.size()));
 				long delta2f = Long.MAX_VALUE;
 				for (int loop = 0; loop < 10; loop++) {
 					Map<String, Integer> multisetNewData = new HashMap<String, Integer>();
@@ -295,9 +298,9 @@ public class Test {
 				index++;
 			}
 			else if (algoType == AlgorithmType.optimization) {
-				System.out.println("raw log: " + log);
-				System.out.println("raw multiset: " + multiset);
-				System.out.println("===== for old algo ===== ");
+//				System.out.println("raw log: " + log);
+//				System.out.println("raw multiset: " + multiset);
+//				System.out.println("===== for old algo ===== ");
 				bw.write("raw log:\t" + log + "\n");
 				bw.write("raw multiset:\t" + multiset + "\n");
 				bw.write("===== for old algo ===== \n");
@@ -326,12 +329,12 @@ public class Test {
 				endTime = System.nanoTime();
 				delta1 = endTime - startTime;
 				
-				System.out.println("result log: " + rtn);
-				System.out.println("time consumed for old algo: " + delta2);
+//				System.out.println("result log: " + rtn);
+//				System.out.println("time consumed for old algo: " + delta2);
 				bw.write("result log:\t" + rtn + "\n");
 				bw.write("time consumed for old algo:\t" + delta2 + "\n");
 				
-				System.out.println("===== for new algo ===== ");
+//				System.out.println("===== for new algo ===== ");
 				bw.write("===== for new algo ===== \n");
 				
 				startTime = System.nanoTime();
@@ -339,8 +342,8 @@ public class Test {
 				endTime = System.nanoTime();
 				delta2 = endTime - startTime;
 				
-				System.out.println("result log: " + rtn);
-				System.out.println("time consumed for new algo: " + delta2);
+//				System.out.println("result log: " + rtn);
+//				System.out.println("time consumed for new algo: " + delta2);
 				bw.write("result log:\t" + rtn + "\n");
 				bw.write("time consumed for new algo:\t" + delta2 + "\n");
 				bw.write("===== time rate ===== \n");
@@ -366,22 +369,22 @@ public class Test {
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.alignment);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.myAlgorithm);
-		test(dirPath + modelName + postfix, model, modelName, dataPath, 3, 0, AlgorithmType.debug);
+		test(dirPath + modelName + postfix, model, modelName, dataPath, 20, 0, AlgorithmType.debug);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.optimization);
 	}
 	
 	public static void main(String args[]) throws Exception
 	{
-//		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/BeehiveZ+jBPT+PIPE/bpm/笑尘代码/data/causal/FI.403.pnml";
-//		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/double_loop_nested.pnml";
-//		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/BeehiveZ+jBPT+PIPE/bpm/笑尘代码/data/all_Loop/FI.106.pnml";
-//		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/Double_Loop_XOR.pnml";
-//		String petriNetPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/XOR_SPLIT_AND_SPLIT.pnml";
-//		String logPath = "/Users/shawn/Documents/LAB/开题/exp/BeehiveZ+jBPT+PIPE/bpm/笑尘代码/data/causal/log/FI.403.pnml.mxml";
+//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/causal/FI.403.pnml";
+//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/double_loop_nested.pnml";
+//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/all_Loop/FI.106.pnml";
+//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/Double_Loop_XOR.pnml";
+//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/XOR_SPLIT_AND_SPLIT.pnml";
+//		String logPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/causal/log/FI.403.pnml.mxml";
 		
-		String dirPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/";
-		String dataPath = "/Users/shawn/Documents/LAB/开题/exp/myModels/misorder/data/";
-		String modelName = "5_choice_1_loop_2";
+		String dirPath = "D:\\实验室\\开题\\model\\";
+		String dataPath = "D:\\实验室\\日志\\data\\";
+		String modelName = "FF301_21";
 		String postfix = ".pnml";
 		
 		repair(dirPath, modelName, postfix, dataPath);

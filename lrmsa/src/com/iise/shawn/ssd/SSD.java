@@ -584,7 +584,7 @@ public class SSD {
 			else {
 				//parallel, tI has more than one output place
 				Iterator<String> itTISuccPlaceId = hsTISuccPlace.iterator();
-				int nTotalSSDT = 0;
+				int nTotalSSDT = -3;
 				int nParallel = 0;
 				ArrayList<ArrayList<String>> alSuccTrace = new ArrayList<ArrayList<String>>();
 				ArrayList<String> visitedCopy = new ArrayList<String>();
@@ -701,9 +701,6 @@ public class SSD {
 					Event pSucc = itSucc.next();
 					String pSuccId = pSucc.getName();
 					if (hasInv == false && pSucc.getName().startsWith("INV_")) {
-						continue;
-					}
-					if(hasInv == false && pSucc.getName().startsWith("INV_")) {
 						continue;
 					}
 					succId.add(pSuccId);
