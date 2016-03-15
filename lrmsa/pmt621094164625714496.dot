@@ -1,0 +1,13 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="General Ledger Business Processes"];
+t1 [shape="box",label="Finished product quality and margin calculations"];
+p0 [shape="oval",label="p1"];
+p1 [shape="oval",label="p4"];
+p2 [shape="oval",label="p5"];
+p1 -> t0[label=""];
+t0 -> p0[label=""];
+p2 -> t1[label=""];
+t1 -> p1[label=""];
+}

@@ -1,0 +1,17 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="Receiving"];
+t1 [shape="box",label="TOBE.C.FI.102 purchase order invoices for reimbursement process"];
+t2 [shape="box",label="TOBE.C.MM.138 shipping process purchase orders issued by"];
+p0 [shape="oval",label="p9"];
+p1 [shape="oval",label="p8"];
+p2 [shape="oval",label="p7"];
+p3 [shape="oval",label="p6"];
+t2 -> p0[label=""];
+p2 -> t2[label=""];
+t0 -> p1[label=""];
+p0 -> t0[label=""];
+p1 -> t1[label=""];
+t1 -> p3[label=""];
+}

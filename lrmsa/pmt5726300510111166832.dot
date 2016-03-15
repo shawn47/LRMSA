@@ -1,0 +1,17 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="Increase in work center"];
+t1 [shape="box",label="Check the work center information is complete"];
+t2 [shape="box",label="Inform the project team"];
+p0 [shape="oval",label="p6"];
+p1 [shape="oval",label="p7"];
+p2 [shape="oval",label="p8"];
+p3 [shape="oval",label="p9"];
+t2 -> p3[label=""];
+p0 -> t0[label=""];
+t0 -> p2[label=""];
+t1 -> p0[label=""];
+p1 -> t2[label=""];
+p3 -> t1[label=""];
+}

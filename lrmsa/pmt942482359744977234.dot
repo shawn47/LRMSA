@@ -1,0 +1,13 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="The end of settlement assets"];
+t1 [shape="box",label="Asset fiscal year change"];
+p0 [shape="oval",label="p4"];
+p1 [shape="oval",label="p5"];
+p2 [shape="oval",label="p6"];
+t1 -> p2[label=""];
+p2 -> t0[label=""];
+p1 -> t1[label=""];
+t0 -> p0[label=""];
+}

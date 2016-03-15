@@ -1,0 +1,17 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="TOBE.C.SD.050 Sales Billing Process"];
+t1 [shape="box",label="Sales Order Shipping"];
+t2 [shape="box",label="Production Order Receipt Process"];
+p0 [shape="oval",label="p6"];
+p1 [shape="oval",label="p7"];
+p2 [shape="oval",label="p8"];
+p3 [shape="oval",label="p9"];
+p2 -> t1[label=""];
+t1 -> p0[label=""];
+t0 -> p1[label=""];
+p3 -> t2[label=""];
+p0 -> t0[label=""];
+t2 -> p2[label=""];
+}

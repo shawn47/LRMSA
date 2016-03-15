@@ -27,7 +27,7 @@ import cern.colt.matrix.DoubleMatrix2D;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
-		String fileName = "D:\\实验室\\开题\\model\\FF301_1";
+		String fileName = "D:\\实验室\\开题\\model_ZXC\\all_Loop\\材料卡审批流程";
 		String filePath1 = fileName + ".pnml";
 		String filePath2 = fileName + ".png";
 		String filePath3 = fileName + "-cfp.png";

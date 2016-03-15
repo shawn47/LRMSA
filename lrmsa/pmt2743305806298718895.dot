@@ -1,0 +1,17 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="Payment approval process"];
+t1 [shape="box",label="end"];
+t2 [shape="box",label="General ledger voucher processing\n"];
+p0 [shape="oval",label="place_3"];
+p1 [shape="oval",label="place_2"];
+p2 [shape="oval",label="place_1"];
+p3 [shape="oval",label="place_0"];
+p1 -> t0[label=""];
+t1 -> p0[label=""];
+p3 -> t2[label=""];
+t0 -> p3[label=""];
+t2 -> p2[label=""];
+p2 -> t1[label=""];
+}

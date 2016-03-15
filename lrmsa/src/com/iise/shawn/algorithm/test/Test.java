@@ -3,6 +3,7 @@ package com.iise.shawn.algorithm.test;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -67,11 +68,7 @@ public class Test {
 	
 	public static void initializeAlgorithm(PetriNet model, String modelName, String dataPath, int loopNum, AlgorithmType algoType) throws IOException{
 //		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm");
-		Date date = new Date();
-		System.out.println(dateFormat.format(date));
-		
-		dataFileName = dataPath + modelName + "_" + dateFormat.format(date) + "_" + loopNum + ".txt";
+//		dataFileName = dataPath + modelName + "_" + dateFormat.format(date) + "_" + loopNum + ".txt";
 		
 		File output = new File(dataFileName);
 		FileWriter fw = new FileWriter(output);
@@ -102,6 +99,18 @@ public class Test {
 		System.out.println("===== start SSD Computation Status ===== ");
 		startTime = System.nanoTime();
 		DoubleMatrix2D ssdMatrix = ssd.computeSSD(cpu, alOrder_cfp);
+		int i = 0, j = 0;
+		for (i = 0; i < ssdMatrix.rows(); i++) {
+			for (j = 0; j < ssdMatrix.columns(); j++) {
+				if (ssdMatrix.get(i, j) != -3) {
+					break;
+				}
+			}
+			if (j == ssdMatrix.columns()) {
+				break;
+			}
+		}
+		mA.setEndNodeIndex(i);
 		endTime = System.nanoTime();
 		System.out.println("===== end SSD Computation Status ===== ");
 		System.out.println("init SSD time consumed: " + (endTime - startTime));
@@ -112,7 +121,12 @@ public class Test {
 		mA.setSSDMatrix(ssdMatrix);
 		mA.setOrderCPU(alOrder_cfp);
 		mA.initSSDMatrixNew();
-		bw.write("Trace Number:\t" + (gTrace.traceList.size()) + "\n");
+		if (algoType == AlgorithmType.batch) {
+			bw.write("Trace Number:\t" + (gTrace.traceBatchList.size()) + "\n");
+		}
+		else {
+			bw.write("Trace Number:\t" + (gTrace.traceList.size()) + "\n");
+		}
 		System.out.println("============= init accomplished ============= ");
 		bw.write("============= init accomplished ============= \n");
 		bw.close();
@@ -363,14 +377,179 @@ public class Test {
 		fw.close();
 	}
 	
-	public static void repair(String dirPath, String modelName, String postfix, String dataPath) throws Exception	
+	public static void testBatch(String dirPath, String dataPath, int loopNum) throws Exception {
+		gTrace.init();
+		gTrace.generateTraceBatch(dirPath, loopNum);
+		
+		System.out.println("total trace number:\t" + gTrace.traceBatchList.size());
+		
+		PnmlImport pnmlImport = new PnmlImport();
+        File folder = new File(dirPath);
+        File[] files = folder.listFiles();
+        
+        // record experiment data
+		File output = new File(dataFileName);
+		FileWriter fw = new FileWriter(output, true);
+		BufferedWriter bw = new BufferedWriter(fw);
+		
+		long startTime = 0, endTime = 0, delta1 = 0, delta2 = 0;
+		int index = 0;
+		float[] timeRate = new float[gTrace.traceBatchList.size()];
+		float rateSum = 0;
+		
+		
+        for(File file : files) {
+            FileInputStream input = new FileInputStream(file);
+            System.out.println(file.getAbsolutePath());
+            PetriNet model = pnmlImport.read(input);
+            
+            initializeAlgorithm(model, file.getName(), dataPath, loopNum, AlgorithmType.batch);
+            
+            LinkedList<Transition> tau = null;
+    		List<String> rtn = null;
+    		
+    		LinkedList<String> log = new LinkedList<String>();
+			for (String item : gTrace.traceBatchList.get(index)) {
+				log.add(item);
+			}
+			// log is now in misorder
+			Collections.shuffle(log);
+			String rawLogString = "";
+			for (int ievent = 0; ievent < log.size() - 1; ievent++) {
+				rawLogString += log.get(ievent) + ", ";
+			}
+			rawLogString += log.get(log.size() - 1);
+			
+			// change log into multiset
+			Map<String, Integer> multiset = new HashMap<String, Integer>();
+			for (int i = 0; i < log.size(); i++) {
+				if (!multiset.containsKey(log.get(i))) {
+					multiset.put(log.get(i), 1);
+				}
+				else {
+					int count = multiset.get(log.get(i));
+					multiset.put(log.get(i), ++count);
+				}
+			}
+			System.out.println((index + 1) + "th trace(" + gTrace.traceBatchList.size() + ") complete " + ((double)(index + 1) / gTrace.traceList.size()));
+			long delta2f = Long.MAX_VALUE;
+			for (int loop = 0; loop < 10; loop++) {
+				Map<String, Integer> multisetNewData = new HashMap<String, Integer>();
+				for (int i = 0; i < log.size(); i++) {if (!multisetNewData.containsKey(log.get(i))) {
+						multisetNewData.put(log.get(i), 1);
+					}
+					else {
+						int count1 = multisetNewData.get(log.get(i));
+						multisetNewData.put(log.get(i), ++count1);
+					}
+				}
+				if (loop == 0) {
+					bw.write("raw multiset:\t" + multisetNewData + "\n");
+					System.out.println("===== for MyAlgo ===== ");
+					bw.write("===== for MyAlgo ===== \n");
+				}
+				startTime = System.nanoTime();
+				rtn = mA.repair2(multisetNewData);
+				endTime = System.nanoTime();
+				delta2 = endTime - startTime;
+				if (delta2 < delta2f) {
+					delta2f = delta2;
+				}
+			}
+			
+			System.out.println("result log: " + rtn);
+			System.out.println("time consumed for myAlgo: " + delta2f);
+			bw.write("result log:\t" + rtn + "\n");
+			bw.write("time consumed for myAlgo:\t" + delta2f + "\n");
+			
+			
+			int[] count = new int[1];
+			count[0] = 0;
+			
+			long delta1f = Long.MAX_VALUE;
+			for (int loop = 0; loop < 10; loop++) {
+				LinkedList<String> logNew = new LinkedList<String>();
+				String[] inputArray = rawLogString.split(", ");
+				for (String itm : inputArray) {
+					logNew.add(itm);
+				}
+				if (loop == 0) {
+					bw.write("raw log:\t" + logNew + "\n");
+					System.out.println("===== for Alignment ===== ");
+					bw.write("===== for Alignment ===== \n");
+				}
+				startTime = System.nanoTime();
+				tau = aA.repair(model, logNew, count);
+				endTime = System.nanoTime();
+				delta1 = endTime - startTime;
+				if (delta1 < delta1f) {
+					delta1f = delta1;
+				}
+			}
+			
+			
+			System.out.println("result log: " + tau);
+			System.out.println("backtrack num: " + count[0]);
+			System.out.println("time consumed for Alignment: " + delta1f);
+			bw.write("result log:\t" + tau + "\n");
+			bw.write("backtrack num:\t" + count[0] + "\n");
+			bw.write("time consumed for Alignment:\t" + delta1f + "\n");
+			
+			bw.write("===== time rate ===== \n");
+			bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1f / delta2f)));
+			if (rtn.size() != tau.size()) {
+				bw.write("2 result is result? NO\n");
+			}
+			else {
+				int checkIndex = 0;
+				for (; checkIndex < tau.size(); checkIndex++) {
+					if (!rtn.get(checkIndex).equalsIgnoreCase(tau.get(checkIndex).getIdentifier())) {
+						bw.write("2 result is result? NO\n");
+						break;
+					}
+				}
+				if (checkIndex == tau.size()) {
+					bw.write("2 result is result? Yes\n");
+				}
+			}
+			
+			bw.write("\n");
+			timeRate[index] = ((float)delta1f / delta2f);
+			index++;
+        }
+        bw.write("============= Comparision Accomplished ============= \n");
+		
+		for (float delta : timeRate) {
+			rateSum += delta;
+		}
+		
+		bw.write(String.format("average time consumed rate(Alignment / MyAlgo):\t%.2f\n", rateSum / gTrace.traceBatchList.size()));
+		bw.close();
+		fw.close();
+	}
+	
+	public static void repair(String dirPath, String modelName, String postfix, String dataPath, int loopNum) throws Exception	
 	{
+		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm");
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
+		dataFileName = dataPath + modelName + "_" + dateFormat.format(date) + "_" + loopNum + ".txt";
+		
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
-//		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.alignment);
-//		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.myAlgorithm);
-		test(dirPath + modelName + postfix, model, modelName, dataPath, 20, 0, AlgorithmType.debug);
-//		test(dirPath + modelName + postfix, model, modelName, dataPath, 1, 0, AlgorithmType.optimization);
+//		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.alignment);
+		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.myAlgorithm);
+//		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.debug);
+//		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.optimization);
+	}
+	
+	public static void repairBatch(String dirPath, String dataPath, int loopNum) throws Exception {
+		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm");
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
+		dataFileName = dataPath + dateFormat.format(date) + "_" + loopNum + ".txt";
+		
+		testBatch(dirPath, dataPath, loopNum);
 	}
 	
 	public static void main(String args[]) throws Exception
@@ -382,11 +561,13 @@ public class Test {
 //		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/XOR_SPLIT_AND_SPLIT.pnml";
 //		String logPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/causal/log/FI.403.pnml.mxml";
 		
-		String dirPath = "D:\\实验室\\开题\\model\\";
+//		String dirPath = "D:\\实验室\\开题\\real_data\\";
+		String dirPath = "D:\\实验室\\开题\\DG\\";
 		String dataPath = "D:\\实验室\\日志\\data\\";
-		String modelName = "FF301_21";
+		String modelName = "DG-CO.007";
 		String postfix = ".pnml";
 		
-		repair(dirPath, modelName, postfix, dataPath);
+		repair(dirPath, modelName, postfix, dataPath, 5);
+//		repairBatch(dirPath, dataPath, 20);
 	}
 }

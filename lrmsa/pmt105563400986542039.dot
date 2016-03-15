@@ -1,0 +1,21 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="Maintenance of the implementation status of purchase orders"];
+t1 [shape="box",label="Material conditions to identify needs"];
+t2 [shape="box",label="TOBE.C.MM.131 process purchase orders issued by"];
+t3 [shape="box",label="Look for Purchase Order Delivery Time"];
+p0 [shape="oval",label="p12"];
+p1 [shape="oval",label="p11"];
+p2 [shape="oval",label="p10"];
+p3 [shape="oval",label="p9"];
+p4 [shape="oval",label="p8"];
+p4 -> t2[label=""];
+t2 -> p0[label=""];
+t3 -> p1[label=""];
+t0 -> p2[label=""];
+p3 -> t0[label=""];
+p1 -> t1[label=""];
+t1 -> p3[label=""];
+p0 -> t3[label=""];
+}

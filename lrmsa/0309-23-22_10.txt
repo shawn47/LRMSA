@@ -1,0 +1,109 @@
+============= init... ============= 
+CPU Time Consumed:	1703540
+SSD Time Consumed:	15421477
+Trace Number:	2
+============= init accomplished ============= 
+t, T3, Allocation of project budget, T3, Allocation of project budget, Assigned project budget, End]
+time consumed for myAlgo:	35137
+raw log:	[Allocation of project budget, T3, Allocation of project budget, Allocation of project budget, Allocation of project budget, T3, Allocation of project budget, T3, T3, Allocation of project budget, Allocation of project budget, T3, Allocation of project budget, Allocation of project budget, T3, Allocation of project budget, Allocation of project budget, End, T3, Improve the WBS hierarchy and network , Start, T3, T3, Assigned project budget, T3]
+===== for Alignment ===== 
+result log:	[Start, Improve the WBS hierarchy and network , Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, T3, Allocation of project budget, Assigned project budget, End]
+backtrack num:	230
+time consumed for Alignment:	232534
+===== time rate ===== 
+time consumed rate:	6.62
+2 result is result? Yes
+
+raw multiset:	{Project a budget deviation=1, Start=1, Ordered process of change and investment budget=1, End=1}
+===== for MyAlgo ===== 
+result log:	[Start, Project a budget deviation, Ordered process of change and investment budget, End]
+time consumed for myAlgo:	5527
+raw log:	[Ordered process of change and investment budget, Project a budget deviation, Start, End]
+===== for Alignment ===== 
+result log:	[Start, Project a budget deviation, Ordered process of change and investment budget, End]
+backtrack num:	0
+time consumed for Alignment:	9080
+===== time rate ===== 
+time consumed rate:	1.64
+2 result is result? Yes
+
+raw multiset:	{T4=1, To export cars to cross the track to deliver supplies department escort license=1, Start=1, Notify the Production Department has completed the formalities related to export cars=1, Notify the Finance Department=1, And handle the transfer station and transport issues=1, Organizational vehicle factory=1, Notify the project office products factory=1, Packing=1, End products Readiness=1, Export of vehicles and transport fees and processing stations=1, End=1, Track escort vehicles over the export permit process=1}
+===== for MyAlgo ===== 
+result log:	[Start, End products Readiness, Packing, T4, Track escort vehicles over the export permit process, To export cars to cross the track to deliver supplies department escort license, Export of vehicles and transport fees and processing stations, Notify the Production Department has completed the formalities related to export cars, Organizational vehicle factory, And handle the transfer station and transport issues, Notify the project office products factory, Notify the Finance Department, End]
+time consumed for myAlgo:	16976
+raw log:	[Notify the Finance Department, Export of vehicles and transport fees and processing stations, End, Notify the project office products factory, Packing, T4, To export cars to cross the track to deliver supplies department escort license, End products Readiness, Notify the Production Department has completed the formalities related to export cars, Track escort vehicles over the export permit process, And handle the transfer station and transport issues, Organizational vehicle factory, Start]
+===== for Alignment ===== 
+result log:	[Start, End products Readiness, Packing, T4, Track escort vehicles over the export permit process, To export cars to cross the track to deliver supplies department escort license, Export of vehicles and transport fees and processing stations, Notify the Production Department has completed the formalities related to export cars, Organizational vehicle factory, And handle the transfer station and transport issues, Notify the project office products factory, Notify the Finance Department, End]
+backtrack num:	0
+time consumed for Alignment:	52113
+===== time rate ===== 
+time consumed rate:	3.07
+2 result is result? Yes
+
+raw multiset:	{Notify the Finance Department=1, Determine transportation=1, Notify the project office products factory=1, Start=1, Shipment of non-rail transport=1, Transportation costs and handling matters=1, End Product Packaging preparednes=1, End=1}
+===== for MyAlgo ===== 
+result log:	[Start, End Product Packaging preparednes, Determine transportation, Shipment of non-rail transport, Transportation costs and handling matters, Notify the project office products factory, Notify the Finance Department, End]
+time consumed for myAlgo:	9870
+raw log:	[Start, End Product Packaging preparednes, Shipment of non-rail transport, Transportation costs and handling matters, Determine transportation, End, Notify the project office products factory, Notify the Finance Department]
+===== for Alignment ===== 
+result log:	[Start, End Product Packaging preparednes, Determine transportation, Shipment of non-rail transport, Transportation costs and handling matters, Notify the project office products factory, Notify the Finance Department, End]
+backtrack num:	30
+time consumed for Alignment:	20924
+===== time rate ===== 
+time consumed rate:	2.12
+2 result is result? Yes
+
+raw multiset:	{Organizations and departments to make the project summary=1, No contract and the successful trial of new =1, Close Project=1, Products have been shipped factory=1, Project Acceptance=1, Start=1, Related documents into the system=1, End=1, Make the evaluation of the project=1}
+===== for MyAlgo ===== 
+result log:	[Start, No contract and the successful trial of new , Products have been shipped factory, Organizations and departments to make the project summary, Related documents into the system, Project Acceptance, Make the evaluation of the project, Close Project, End]
+time consumed for myAlgo:	13028
+raw log:	[Project Acceptance, Related documents into the system, Organizations and departments to make the project summary, Close Project, Make the evaluation of the project, End, Start, Products have been shipped factory, No contract and the successful trial of new ]
+===== for Alignment ===== 
+result log:	[Start, No contract and the successful trial of new , Products have been shipped factory, Organizations and departments to make the project summary, Related documents into the system, Project Acceptance, Make the evaluation of the project, Close Project, End]
+backtrack num:	10
+time consumed for Alignment:	30399
+===== time rate ===== 
+time consumed rate:	2.33
+2 result is result? Yes
+
+raw multiset:	{Settlement rule maintenance=1, T6=1, Complete settlement rule maintenance =1, Start=1, Head of Finance for approval and =1, End=1, Project started=1}
+===== for MyAlgo ===== 
+result log:	[Start, Project started, Complete settlement rule maintenance , Head of Finance for approval and , Settlement rule maintenance, T6, End]
+time consumed for myAlgo:	10659
+raw log:	[T6, Project started, Head of Finance for approval and , Complete settlement rule maintenance , Start, End, Settlement rule maintenance]
+===== for Alignment ===== 
+result log:	[Start, Project started, Complete settlement rule maintenance , Head of Finance for approval and , Settlement rule maintenance, T6, End]
+backtrack num:	0
+time consumed for Alignment:	25267
+===== time rate ===== 
+time consumed rate:	2.37
+2 result is result? Yes
+
+raw multiset:	{Intention of signing the contract or be sold =1, Maintenance of sales orders =11, T6=10, To the Project Office and other relevant departments contract explanation =11, T8=1, Organization of project implementation =11, Start=1, End=1, Assessment of customer needs =11}
+===== for MyAlgo ===== 
+result log:	[Start, Intention of signing the contract or be sold , Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T8, End]
+time consumed for myAlgo:	78169
+raw log:	[Assessment of customer needs , Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , To the Project Office and other relevant departments contract explanation , Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Maintenance of sales orders , Maintenance of sales orders , Organization of project implementation , To the Project Office and other relevant departments contract explanation , T6, T6, To the Project Office and other relevant departments contract explanation , Organization of project implementation , Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , T8, T6, Maintenance of sales orders , Assessment of customer needs , To the Project Office and other relevant departments contract explanation , Assessment of customer needs , Organization of project implementation , Assessment of customer needs , Assessment of customer needs , Organization of project implementation , Maintenance of sales orders , Assessment of customer needs , To the Project Office and other relevant departments contract explanation , T6, Intention of signing the contract or be sold , T6, End, Maintenance of sales orders , T6, Maintenance of sales orders , T6, Organization of project implementation , Assessment of customer needs , Organization of project implementation , Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , To the Project Office and other relevant departments contract explanation , T6, Assessment of customer needs , Assessment of customer needs , Assessment of customer needs , T6, Organization of project implementation , Assessment of customer needs , T6, Start, Organization of project implementation ]
+===== for Alignment ===== 
+result log:	[Start, Intention of signing the contract or be sold , Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T6, Maintenance of sales orders , To the Project Office and other relevant departments contract explanation , Organization of project implementation , Assessment of customer needs , T8, End]
+backtrack num:	190
+time consumed for Alignment:	871707
+===== time rate ===== 
+time consumed rate:	11.15
+2 result is result? Yes
+
+raw multiset:	{Open and according to declarations =1, Billing Process (FICO) =1, The declaration referred to the Finance Department =1, Sales order delivery of supplies to the Department of =1, Organization of transport and Customs formalities =1, Start=1, Intention of signing a sales contract sales =1, End=1, Check the sales order =1, Office of the libraries within the system =1, Create Sales Order =1}
+===== for MyAlgo ===== 
+result log:	[Start, Intention of signing a sales contract sales , Create Sales Order , Sales order delivery of supplies to the Department of , Office of the libraries within the system , Open and according to declarations , Organization of transport and Customs formalities , The declaration referred to the Finance Department , Check the sales order , Billing Process (FICO) , End]
+time consumed for myAlgo:	16976
+raw log:	[The declaration referred to the Finance Department , Check the sales order , Open and according to declarations , Start, Organization of transport and Customs formalities , Billing Process (FICO) , Office of the libraries within the system , Sales order delivery of supplies to the Department of , End, Intention of signing a sales contract sales , Create Sales Order ]
+===== for Alignment ===== 
+result log:	[Start, Intention of signing a sales contract sales , Create Sales Order , Sales order delivery of supplies to the Department of , Office of the libraries within the system , Open and according to declarations , Organization of transport and Customs formalities , The declaration referred to the Finance Department , Check the sales order , Billing Process (FICO) , End]
+backtrack num:	20
+time consumed for Alignment:	50928
+===== time rate ===== 
+time consumed rate:	3.00
+2 result is result? Yes
+
+============= Comparision Accomplished ============= 
+average time consumed rate(Alignment / MyAlgo):	117.45

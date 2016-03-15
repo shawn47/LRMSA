@@ -1,0 +1,21 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="TOBE.C.SD.040 products shipped Process"];
+t1 [shape="box",label="In the SAP system for goods receipt posting operations"];
+t2 [shape="box",label="TOBE.C.PP.103 auxiliary equipment, spare parts production orders issued by Flow"];
+t3 [shape="box",label="Confirmed that the month finished goods"];
+p0 [shape="oval",label="p8"];
+p1 [shape="oval",label="p9"];
+p2 [shape="oval",label="p10"];
+p3 [shape="oval",label="p11"];
+p4 [shape="oval",label="p12"];
+t1 -> p4[label=""];
+p1 -> t2[label=""];
+p4 -> t0[label=""];
+t2 -> p0[label=""];
+p2 -> t1[label=""];
+t3 -> p2[label=""];
+t0 -> p3[label=""];
+p0 -> t3[label=""];
+}

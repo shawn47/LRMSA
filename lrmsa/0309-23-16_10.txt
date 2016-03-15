@@ -1,0 +1,5 @@
+============= init... ============= 
+CPU Time Consumed:	29163892
+SSD Time Consumed:	910550142
+Trace Number:	2
+============= init accomplished ============= 

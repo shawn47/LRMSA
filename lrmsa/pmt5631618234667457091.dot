@@ -1,0 +1,28 @@
+digraph G {ranksep=".3"; fontsize="8"; remincross=true; margin="0.0,0.0"; fontname="Arial";rankdir="LR"; 
+edge [arrowsize="0.5"];
+node [height=".2",width=".2",fontname="Arial",fontsize="8"];
+t0 [shape="box",label="Identify the causes of"];
+t1 [shape="box",label="Review the results of revaluation of trial operation"];
+t2 [shape="box",label="Foreign currency revaluation trial run"];
+t3 [shape="box",label="Maintenance of foreign exchange rate process"];
+t4 [shape="box",label="Foreign currency revaluation of the official run"];
+t5 [shape="box",label="FI the end of checkout process"];
+p0 [shape="oval",label="p3"];
+p1 [shape="oval",label="p15"];
+p2 [shape="oval",label="p18"];
+p3 [shape="oval",label="p20"];
+p4 [shape="oval",label="p17"];
+p5 [shape="oval",label="p12"];
+p0 -> t0[label=""];
+p3 -> t2[label=""];
+t3 -> p3[label=""];
+p0 -> t4[label=""];
+t4 -> p4[label=""];
+p1 -> t3[label=""];
+p4 -> t5[label=""];
+t2 -> p5[label=""];
+p5 -> t1[label=""];
+t1 -> p0[label=""];
+t5 -> p2[label=""];
+t0 -> p3[label=""];
+}
