@@ -42,7 +42,7 @@ public class Test {
 	private static Random ran = new Random(1);
 	private static GenerateTrace gTrace = new GenerateTrace();
 	
-	private static String dataFileName;
+	private static String dataFileName, dataGraphFileName;
 	
 	public static LinkedList<String> randomError(ArrayList<String> eventLog, double percent){
 		LinkedList<String> log = new LinkedList<String>();
@@ -206,7 +206,7 @@ public class Test {
 				count[0] = 0;
 				
 				LinkedList<String> log2 = new LinkedList<String>();
-				String input = "Receivable accounting calculation of the amount of provision for bad debts , Do financial processing receivable accounting , Start, End, Aging of accounts receivable accounting inquiry ";
+				String input = "The end of checkout process CO, General Ledger Business Processes, Audit, Imputation product cost, Comprehensive provision for withholding the cost of";
 				String[] inputArray = input.split(", ");
 				for (String itm : inputArray) {
 					log2.add(itm);
@@ -398,7 +398,12 @@ public class Test {
 		FileWriter fw = new FileWriter(output, true);
 		BufferedWriter bw = new BufferedWriter(fw);
 		
-		long startTime = 0, endTime = 0, delta1 = 0, delta2 = 0;
+		File outputGraph = new File(dataGraphFileName);
+		FileWriter fwGraph = new FileWriter(outputGraph, true);
+		BufferedWriter bwGraph = new BufferedWriter(fwGraph);
+		
+		long startTime = 0, endTime = 0;
+		float delta1 = 0, delta2 = 0;
 		int index = 0;
 		float[] timeRate = new float[gTrace.traceBatchList.size()];
 		float rateSum = 0;
@@ -444,8 +449,9 @@ public class Test {
 				}
 			}
 			System.out.println((index + 1) + "th trace(" + gTrace.traceBatchList.size() + ") complete " + ((double)(index + 1) / gTrace.traceList.size()));
-			long delta2f = Long.MAX_VALUE;
-			for (int loop = 0; loop < 10; loop++) {
+//			long delta2f = Long.MAX_VALUE;
+			long delta2f = 0;
+			for (int loop = 0; loop < 6; loop++) {
 				Map<String, Integer> multisetNewData = new HashMap<String, Integer>();
 				for (int i = 0; i < log.size(); i++) {if (!multisetNewData.containsKey(log.get(i))) {
 						multisetNewData.put(log.get(i), 1);
@@ -463,23 +469,28 @@ public class Test {
 				startTime = System.nanoTime();
 				rtn = mA.repair2(multisetNewData);
 				endTime = System.nanoTime();
-				delta2 = endTime - startTime;
-				if (delta2 < delta2f) {
-					delta2f = delta2;
+				if (loop != 0) {
+					delta2f += endTime - startTime;
 				}
+//				delta2 = endTime - startTime;
+//				if (delta2 < delta2f) {
+//					delta2f = delta2;
+//				}
 			}
+			delta2 = (float)delta2f / 5;
 			
 			System.out.println("result log: " + rtn);
-			System.out.println("time consumed for myAlgo: " + delta2f);
+			System.out.println("time consumed for myAlgo: " + delta2);
 //			bw.write("result log:\t" + rtn + "\n");
-			bw.write("time consumed for myAlgo:\t" + delta2f + "\n");
+			bw.write("time consumed for myAlgo:\t" + delta2 + "\n");
 			
 			
 			int[] count = new int[1];
 			count[0] = 0;
 			
-			long delta1f = Long.MAX_VALUE;
-			for (int loop = 0; loop < 10; loop++) {
+//			long delta1f = Long.MAX_VALUE;
+			long delta1f = 0;
+			for (int loop = 0; loop < 6; loop++) {
 				LinkedList<String> logNew = new LinkedList<String>();
 				String[] inputArray = rawLogString.split(", ");
 				for (String itm : inputArray) {
@@ -493,22 +504,25 @@ public class Test {
 				startTime = System.nanoTime();
 				tau = aA.repair(model, logNew, count);
 				endTime = System.nanoTime();
-				delta1 = endTime - startTime;
-				if (delta1 < delta1f) {
-					delta1f = delta1;
+				if (loop != 0) {
+					delta1f += endTime - startTime;
 				}
+//				delta1 = endTime - startTime;
+//				if (delta1 < delta1f) {
+//					delta1f = delta1;
+//				}
 			}
-			
+			delta1 = (float)delta1f / 5;
 			
 			System.out.println("result log: " + tau);
 			System.out.println("backtrack num: " + count[0]);
-			System.out.println("time consumed for Alignment: " + delta1f);
+			System.out.println("time consumed for Alignment: " + delta1);
 //			bw.write("result log:\t" + tau + "\n");
 //			bw.write("backtrack num:\t" + count[0] + "\n");
-			bw.write("time consumed for Alignment:\t" + delta1f + "\n");
+			bw.write("time consumed for Alignment:\t" + delta1 + "\n");
 			
 			bw.write("===== time rate ===== \n");
-			bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1f / delta2f)));
+			bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1 / delta2)));
 			
 			// for trace accuracy
 			// 1 : match perfect
@@ -551,10 +565,15 @@ public class Test {
 			double accuracyRtn = 0.0, accuracyTau = 0.0;
 			accuracyRtn = traceAccuracyRtn + (1 - traceAccuracyRtn) * eventAccuracyRtn;
 			accuracyTau = traceAccuracyTau + (1 - traceAccuracyTau) * eventAccuracyTau;
+			bw.write("myAlgo rtn length:\t" + rtn.size() + "\n");
+			bw.write("alignment tau length:\t" + tau.size() + "\n");
+			bw.write("model transitions number:\t" + model.getTransitions().size() + "\n");
 			bw.write("accuracy for myAlgo:\t" + accuracyRtn + "\n");
 			bw.write("accuracy for Alignment:\t" + accuracyTau + "\n");
 			bw.write("\n");
-			timeRate[index] = ((float)delta1f / delta2f);
+			timeRate[index] = ((float)delta1 / delta2);
+			// timeForMyAlgo,traceSize,accuracy,timeForAlignment,traceSize,accuracy,modelSize,modelName
+			bwGraph.write(delta2 + "," + rtn.size() + "," + accuracyRtn + "," + delta1 + "," + tau.size() + "," + accuracyTau + "," + model.getTransitions().size() + "," + file.getName() + "\n");
 			index++;
         }
         bw.write("============= Comparision Accomplished ============= \n");
@@ -566,6 +585,8 @@ public class Test {
 		bw.write(String.format("average time consumed rate(Alignment / MyAlgo):\t%.2f\n", rateSum / gTrace.traceBatchList.size()));
 		bw.close();
 		fw.close();
+		bwGraph.close();
+		fwGraph.close();
 	}
 	
 	public static void repair(String dirPath, String modelName, String postfix, String dataPath, int loopNum) throws Exception	
@@ -584,10 +605,11 @@ public class Test {
 	}
 	
 	public static void repairBatch(String dirPath, String dataPath, int loopNum) throws Exception {
-		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm");
+		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm-ss");
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
 		dataFileName = dataPath + dateFormat.format(date) + "_" + loopNum + ".txt";
+		dataGraphFileName = dataPath + "graph\\" + dateFormat.format(date) + "_" + loopNum + ".txt";
 		
 		testBatch(dirPath, dataPath, loopNum);
 	}
@@ -601,13 +623,13 @@ public class Test {
 //		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/XOR_SPLIT_AND_SPLIT.pnml";
 //		String logPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/causal/log/FI.403.pnml.mxml";
 		
-//		String dirPath = "D:\\实验室\\开题\\TC\\loop\\";
+//		String dirPath = "D:\\实验室\\开题\\DG\\loop\\";
 		String dirPath = "D:\\实验室\\开题\\TC\\loop";
 		String dataPath = "D:\\实验室\\日志\\data\\";
-		String modelName = "TC-FI.360";
+		String modelName = "DG-CO.007";
 		String postfix = ".pnml";
 		
-//		repair(dirPath, modelName, postfix, dataPath, 5);
+//		repair(dirPath, modelName, postfix, dataPath, 3);
 		repairBatch(dirPath, dataPath, 3);
 	}
 }

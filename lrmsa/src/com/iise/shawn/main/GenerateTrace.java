@@ -133,7 +133,18 @@ public class GenerateTrace {
     			this.traceList.add(trace);
 //    			System.out.println("");
     		}
+//    		int maxLen = 0;
+//    		ArrayList<String> maxLenArray = new ArrayList<String>();
+//    		for (int i = 0; i < this.traceList.size();i++) {
+//    			if (this.traceList.get(i).size() > maxLen) {
+//    				maxLenArray.clear();
+//    				for (String item : this.traceList.get(i)) {
+//    					maxLenArray.add(item);
+//    				}
+//    			}
+//    		}
     		this.traceBatchList.add(this.traceList.get(this.traceList.size() - 1));
+//    		this.traceBatchList.add(maxLenArray);
         }
 	}
 
