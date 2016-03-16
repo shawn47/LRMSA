@@ -80,61 +80,6 @@ public class AlignmentAlgorithm{
 	public LinkedList<Transition> branch(LinkedList<Transition> sigmaK, LinkedList<Transition> visit, LinkedList<String> trace, int k, int depth, int[] count, boolean[] flag){
 		// System.out.println(sigmaK+" "+trace+" "+k+" "+depth);
 //		long nowTime = System.currentTimeMillis();
-		LinkedList<Transition> tauMin = new LinkedList<Transition>();
-		boolean infiniteTauMin = true;
-		int nodeIndex = -1;
-		
-		if(k == (trace.size() - 1)){
-			// 已检查到最后
-			// System.out.println("end:"+sigmaK);
-			Transition lastTrans = transMap.get(trace.get(k));
-			sigmaK.add(lastTrans);
-			return sigmaK;
-		}
-//		if((nowTime-startTime)>20000){
-//			// System.out.println("time out");
-//			// time out
-//			return null;
-//		}
-		if(depth > 1000){
-			// 深度超过标准
-			return null;
-		}
-		Transition trans = transMap.get(trace.get(k));
-		
-		LinkedList<Place> marking = findMarking(sigmaK);
-//		HashSet<Transition> postTransList = new HashSet<Transition>();
-		LinkedList<Transition> postTransList = new LinkedList<Transition>();
-		for(Place p:marking){
-			postTransList.addAll(p.getSuccessors());
-		}
-		if(enabled(marking,trans)){
-			LinkedList<Transition> tau = new LinkedList<Transition>();
-			tau.addAll(sigmaK);
-			tau.add(trans);
-//			System.out.println("+" + trans.getIdentifier());
-			//System.out.println("tau:"+tau);
-			LinkedList<Transition> tau2 = branch(tau, new LinkedList<Transition>(), trace, k + 1, 0, count, flag);
-			//System.out.println("tau2:"+tau2);
-			if ((k + 1) == (trace.size() - 1)) {
-				infiniteTauMin = false;
-				flag[0] = true;
-				return tau2;
-			}
-//			else if (tau2.size() == len) {
-//				infiniteTauMin = false;
-//				return tau2; 
-//			}
-			else {
-				count[0]++;
-//				System.out.println("-" + trans.getIdentifier());
-				if (flag[0]) {
-					return tau2;
-				}
-//				System.out.println("backtrack!");
-			}
-		}
-		
 		Comparator<Transition> cmp = new Comparator<Transition>() {  
             @Override  
             public int compare(Transition t1, Transition t2) {  
@@ -152,7 +97,77 @@ public class AlignmentAlgorithm{
                 }  
             }
         }; 
-        
+		
+		LinkedList<Transition> tauMin = new LinkedList<Transition>();
+		boolean infiniteTauMin = true;
+		int nodeIndex = -1;
+		
+		if(k == (trace.size() - 1)){
+			// System.out.println("end:"+sigmaK);
+			Transition lastTrans = transMap.get(trace.get(k));
+			LinkedList<Place> lastMarking = findMarking(sigmaK);
+			if(enabled(lastMarking, lastTrans)) {
+				sigmaK.add(lastTrans);
+				return sigmaK;
+			}
+			else {
+				LinkedList<Transition> tmpPostTransList = new LinkedList<Transition>();
+				for(Place p : lastMarking){
+					tmpPostTransList.addAll(p.getSuccessors());
+				}
+				Collections.sort(tmpPostTransList, cmp);
+				for (Transition t : tmpPostTransList) {
+					if (t.getIdentifier().startsWith("INV_")) {
+						LinkedList<Transition> tmpSigmaK = new LinkedList<Transition>();
+						tmpSigmaK.addAll(sigmaK);
+						tmpSigmaK.add(t);
+						LinkedList<Place> tmpLastMarking = findMarking(tmpSigmaK);
+						if(enabled(tmpLastMarking, lastTrans)) {
+							sigmaK.add(lastTrans);
+							return sigmaK;
+						}
+					}
+				}
+				return null;
+			}
+		}
+//		if((nowTime-startTime)>20000){
+//			// System.out.println("time out");
+//			// time out
+//			return null;
+//		}
+		if(depth > 1000){
+			return null;
+		}
+		Transition trans = transMap.get(trace.get(k));
+		
+		LinkedList<Place> marking = findMarking(sigmaK);
+//		HashSet<Transition> postTransList = new HashSet<Transition>();
+		LinkedList<Transition> postTransList = new LinkedList<Transition>();
+		for(Place p:marking){
+			postTransList.addAll(p.getSuccessors());
+		}
+		if(enabled(marking,trans)){
+			LinkedList<Transition> tau = new LinkedList<Transition>();
+			tau.addAll(sigmaK);
+			tau.add(trans);
+			LinkedList<Transition> tau2 = branch(tau, new LinkedList<Transition>(), trace, k + 1, 0, count, flag);
+			if ((k + 1) == (trace.size() - 1)) {
+				infiniteTauMin = false;
+				flag[0] = true;
+				return tau2;
+			}
+			else {
+				count[0]++;
+				if(!(tau2 == null || tau2.isEmpty())) {
+					return tau2;
+				}
+//				if (flag[0]) {
+//					return tau2;
+//				}
+			}
+		}
+		
         Collections.sort(postTransList, cmp);
         
 		for(Transition t:postTransList){

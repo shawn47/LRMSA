@@ -12,7 +12,7 @@ public class AddLogEventBatch {
     public static void main(String[] args) throws Exception {
         // TODO Auto-generated method stub
         AddLogEventBatch batch = new AddLogEventBatch();
-        batch.modModels("D:\\实验室\\开题\\real_data\\");
+        batch.modModels("D:\\实验室\\开题\\DG\\loop\\");
         System.exit(0);
     }
 
@@ -28,6 +28,10 @@ public class AddLogEventBatch {
             pn.setName(file.getName());
             for(Transition t : pn.getTransitions()) {
             	if (t.getLogEvent() == null) {
+            		t.setLogEvent(new LogEvent("INV_" + t.getIdentifier().replace(",", " and"), "auto"));
+            		t.setIdentifier("INV_" + t.getIdentifier().replace(",", " and"));
+            	}
+            	else if (t.getIdentifier().matches("T\\d+")) {
             		t.setLogEvent(new LogEvent("INV_" + t.getIdentifier().replace(",", " and"), "auto"));
             		t.setIdentifier("INV_" + t.getIdentifier().replace(",", " and"));
             	}

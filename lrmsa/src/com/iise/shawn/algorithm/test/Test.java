@@ -1,5 +1,6 @@
 package com.iise.shawn.algorithm.test;
 
+import java.awt.PageAttributes.OriginType;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -175,6 +176,11 @@ public class Test {
 			for (String item : eventLog) {
 				log.add(item);
 			}
+			String originLogString = "";
+			for (int ievent = 0; ievent < log.size() - 1; ievent++) {
+				originLogString += log.get(ievent) + ", ";
+			}
+			originLogString += log.get(log.size() - 1);
 			// log is now in misorder
 			Collections.shuffle(log);
 			String rawLogString = "";
@@ -199,15 +205,15 @@ public class Test {
 				int[] count = new int[1];
 				count[0] = 0;
 				
-//				LinkedList<String> log2 = new LinkedList<String>();
-//				String input = "I, K, C, G, B, H, H, G, F, C, H, G, C, H, J, I, E, B, H, A, J, B, G, G, I, B";
-//				String[] inputArray = input.split(", ");
-//				for (String itm : inputArray) {
-//					log2.add(itm);
-//				}
-				System.out.println("raw log: " + log);
+				LinkedList<String> log2 = new LinkedList<String>();
+				String input = "Receivable accounting calculation of the amount of provision for bad debts , Do financial processing receivable accounting , Start, End, Aging of accounts receivable accounting inquiry ";
+				String[] inputArray = input.split(", ");
+				for (String itm : inputArray) {
+					log2.add(itm);
+				}
+				System.out.println("raw log: " + log2);
 				startTime = System.nanoTime();
-				tau = aA.repair(model, log, count);
+				tau = aA.repair(model, log2, count);
 				endTime = System.nanoTime();
 
 				System.out.println("result log: " + tau);
@@ -399,6 +405,7 @@ public class Test {
 		
 		
         for(File file : files) {
+        	bw.write("model name:\t" + file.getName() + "\n");
             FileInputStream input = new FileInputStream(file);
             System.out.println(file.getAbsolutePath());
             PetriNet model = pnmlImport.read(input);
@@ -412,6 +419,11 @@ public class Test {
 			for (String item : gTrace.traceBatchList.get(index)) {
 				log.add(item);
 			}
+			String originLogString = "";
+			for (int ievent = 0; ievent < log.size() - 1; ievent++) {
+				originLogString += log.get(ievent) + ", ";
+			}
+			originLogString += log.get(log.size() - 1);
 			// log is now in misorder
 			Collections.shuffle(log);
 			String rawLogString = "";
@@ -444,7 +456,7 @@ public class Test {
 					}
 				}
 				if (loop == 0) {
-					bw.write("raw multiset:\t" + multisetNewData + "\n");
+//					bw.write("raw multiset:\t" + multisetNewData + "\n");
 					System.out.println("===== for MyAlgo ===== ");
 					bw.write("===== for MyAlgo ===== \n");
 				}
@@ -459,7 +471,7 @@ public class Test {
 			
 			System.out.println("result log: " + rtn);
 			System.out.println("time consumed for myAlgo: " + delta2f);
-			bw.write("result log:\t" + rtn + "\n");
+//			bw.write("result log:\t" + rtn + "\n");
 			bw.write("time consumed for myAlgo:\t" + delta2f + "\n");
 			
 			
@@ -491,28 +503,56 @@ public class Test {
 			System.out.println("result log: " + tau);
 			System.out.println("backtrack num: " + count[0]);
 			System.out.println("time consumed for Alignment: " + delta1f);
-			bw.write("result log:\t" + tau + "\n");
-			bw.write("backtrack num:\t" + count[0] + "\n");
+//			bw.write("result log:\t" + tau + "\n");
+//			bw.write("backtrack num:\t" + count[0] + "\n");
 			bw.write("time consumed for Alignment:\t" + delta1f + "\n");
 			
 			bw.write("===== time rate ===== \n");
 			bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1f / delta2f)));
-			if (rtn.size() != tau.size()) {
-				bw.write("2 result is result? NO\n");
+			
+			// for trace accuracy
+			// 1 : match perfect
+			// 0 : diff between original trace and repaired trace
+			String[] originTrace = originLogString.split(", ");
+			int errorCountRtn = 0, errorCountTau = 0;
+			int minLength = Integer.MAX_VALUE, lenIndex = 0;
+			minLength = Math.min(Math.min(originTrace.length, rtn.size()), tau.size());
+			double traceAccuracyRtn = 0.0, traceAccuracyTau = 0.0;
+			for (; lenIndex < minLength; lenIndex++) {
+				if (!rtn.get(lenIndex).equalsIgnoreCase(originTrace[lenIndex])) {
+					errorCountRtn++;
+				}
 			}
-			else {
-				int checkIndex = 0;
-				for (; checkIndex < tau.size(); checkIndex++) {
-					if (!rtn.get(checkIndex).equalsIgnoreCase(tau.get(checkIndex).getIdentifier())) {
-						bw.write("2 result is result? NO\n");
-						break;
-					}
+			errorCountRtn += Math.abs((originTrace.length - lenIndex));
+			for (lenIndex = 0; lenIndex < minLength; lenIndex++) {
+				if (!tau.get(lenIndex).getIdentifier().replace(",", " and").equalsIgnoreCase(originTrace[lenIndex])) {
+					errorCountTau++;
 				}
-				if (checkIndex == tau.size()) {
-					bw.write("2 result is result? Yes\n");
-				}
+			}
+			errorCountTau += Math.abs((originTrace.length - lenIndex));
+			
+			if (errorCountRtn == 0) {
+				traceAccuracyRtn = 1.0;
+			}
+			if (errorCountTau == 0) {
+				traceAccuracyTau = 1.0;
 			}
 			
+			// for event accuracy
+			double eventAccuracyRtn = 0.0, eventAccuracyTau = 0.0;
+			if (errorCountRtn != 0) {
+				eventAccuracyRtn = 1 - ((double)errorCountRtn) / originTrace.length;
+			}
+			if (errorCountTau != 0) {
+				eventAccuracyTau = 1 - ((double)errorCountTau) / originTrace.length;
+			}
+			
+			// 
+			double accuracyRtn = 0.0, accuracyTau = 0.0;
+			accuracyRtn = traceAccuracyRtn + (1 - traceAccuracyRtn) * eventAccuracyRtn;
+			accuracyTau = traceAccuracyTau + (1 - traceAccuracyTau) * eventAccuracyTau;
+			bw.write("accuracy for myAlgo:\t" + accuracyRtn + "\n");
+			bw.write("accuracy for Alignment:\t" + accuracyTau + "\n");
 			bw.write("\n");
 			timeRate[index] = ((float)delta1f / delta2f);
 			index++;
@@ -537,8 +577,8 @@ public class Test {
 		
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
-//		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.alignment);
-		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.myAlgorithm);
+		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.alignment);
+//		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.myAlgorithm);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.debug);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.optimization);
 	}
@@ -561,13 +601,13 @@ public class Test {
 //		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/XOR_SPLIT_AND_SPLIT.pnml";
 //		String logPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/causal/log/FI.403.pnml.mxml";
 		
-//		String dirPath = "D:\\实验室\\开题\\real_data\\";
-		String dirPath = "D:\\实验室\\开题\\DG\\";
+//		String dirPath = "D:\\实验室\\开题\\TC\\loop\\";
+		String dirPath = "D:\\实验室\\开题\\TC\\loop";
 		String dataPath = "D:\\实验室\\日志\\data\\";
-		String modelName = "DG-CO.007";
+		String modelName = "TC-FI.360";
 		String postfix = ".pnml";
 		
-		repair(dirPath, modelName, postfix, dataPath, 5);
-//		repairBatch(dirPath, dataPath, 20);
+//		repair(dirPath, modelName, postfix, dataPath, 5);
+		repairBatch(dirPath, dataPath, 3);
 	}
 }
