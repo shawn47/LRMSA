@@ -167,8 +167,11 @@ public class MyAlgorithm {
 							localAncientNodeIndex = alOrder_cfp.indexOf(localAncientNode);
 						}
 						else {
+							if ((ssdMatrix.get(localAncientNodeIndex, candiNodeIndex1)) == 0.0 && (ssdMatrix.get(candiNodeIndex1, localAncientNodeIndex)) == 0.0) {
+								continue;
+							}
 							// if 2 candidate nodes (node A and node B) can reach to each other, we play a test:
-							if ((ssdMatrix.get(localAncientNodeIndex, candiNodeIndex1)) >= 0.0 && (ssdMatrix.get(candiNodeIndex1, localAncientNodeIndex)) >= 0.0) {
+							if ((ssdMatrix.get(localAncientNodeIndex, candiNodeIndex1)) > 0.0 && (ssdMatrix.get(candiNodeIndex1, localAncientNodeIndex)) > 0.0) {
 //								// if the ssd distance from A to B is larger than the ssd distance from B to A, then we choose B as the next node.
 //								if ((ssdMatrix.get(candiNodeIndex1, localAncientNodeIndex) >= 0.0) && (ssdMatrix.get(localAncientNodeIndex, candiNodeIndex1) > ssdMatrix.get(candiNodeIndex1, localAncientNodeIndex))) {
 //									localAncientNode = candiNode1;

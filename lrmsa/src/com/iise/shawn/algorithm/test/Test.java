@@ -206,14 +206,15 @@ public class Test {
 				count[0] = 0;
 				
 				LinkedList<String> log2 = new LinkedList<String>();
-				String input = "The end of checkout process CO, General Ledger Business Processes, Audit, Imputation product cost, Comprehensive provision for withholding the cost of";
+				String input = "Phone or E-mail to inform the Finance Ministry and related departments , Complete financial view , Start, Submit applications for customer master data maintenance , Submit applications for customer master data maintenance , Customer master data to create and modify and freeze and delete , End, Submit applications for customer master data maintenance , Submit applications for customer master data maintenance ";
 				String[] inputArray = input.split(", ");
 				for (String itm : inputArray) {
 					log2.add(itm);
 				}
 				System.out.println("raw log: " + log2);
+				int[] alignmentSolutionSize = new int[1];
 				startTime = System.nanoTime();
-				tau = aA.repair(model, log2, count);
+				tau = aA.repair(model, log2, count, alignmentSolutionSize);
 				endTime = System.nanoTime();
 
 				System.out.println("result log: " + tau);
@@ -278,8 +279,9 @@ public class Test {
 						System.out.println("===== for Alignment ===== ");
 						bw.write("===== for Alignment ===== \n");
 					}
+					int[] alignmentSolutionSize = new int[1];
 					startTime = System.nanoTime();
-					tau = aA.repair(model, logNew, count);
+					tau = aA.repair(model, logNew, count, alignmentSolutionSize);
 					endTime = System.nanoTime();
 					delta1 = endTime - startTime;
 					if (delta1 < delta1f) {
@@ -490,6 +492,7 @@ public class Test {
 			
 //			long delta1f = Long.MAX_VALUE;
 			long delta1f = 0;
+			int[] alignmentSolutionSize = new int[1];
 			for (int loop = 0; loop < 6; loop++) {
 				LinkedList<String> logNew = new LinkedList<String>();
 				String[] inputArray = rawLogString.split(", ");
@@ -502,7 +505,7 @@ public class Test {
 					bw.write("===== for Alignment ===== \n");
 				}
 				startTime = System.nanoTime();
-				tau = aA.repair(model, logNew, count);
+				tau = aA.repair(model, logNew, count, alignmentSolutionSize);
 				endTime = System.nanoTime();
 				if (loop != 0) {
 					delta1f += endTime - startTime;
@@ -520,6 +523,7 @@ public class Test {
 //			bw.write("result log:\t" + tau + "\n");
 //			bw.write("backtrack num:\t" + count[0] + "\n");
 			bw.write("time consumed for Alignment:\t" + delta1 + "\n");
+			bw.write("solutionset size for Alignment:\t" + alignmentSolutionSize[0] + "\n");
 			
 			bw.write("===== time rate ===== \n");
 			bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1 / delta2)));
@@ -605,28 +609,21 @@ public class Test {
 	}
 	
 	public static void repairBatch(String dirPath, String dataPath, int loopNum) throws Exception {
-		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm-ss");
+		DateFormat dateFormat = new SimpleDateFormat("MMdd_HH_mm_ss");
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
-		dataFileName = dataPath + dateFormat.format(date) + "_" + loopNum + ".txt";
-		dataGraphFileName = dataPath + "graph\\" + dateFormat.format(date) + "_" + loopNum + ".txt";
+		dataFileName = dataPath + dataPath.substring(dataPath.lastIndexOf("\\"), dataPath.length()) + "_" + dateFormat.format(date) + "_" + loopNum + ".txt";
+		dataGraphFileName = dataPath + "graph\\"  + dataPath.substring(dataPath.lastIndexOf("\\"), dataPath.length()) + "_" + dateFormat.format(date) + "_" + loopNum + ".txt";
 		
 		testBatch(dirPath, dataPath, loopNum);
 	}
 	
 	public static void main(String args[]) throws Exception
 	{
-//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/causal/FI.403.pnml";
-//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/double_loop_nested.pnml";
-//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/all_Loop/FI.106.pnml";
-//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/Double_Loop_XOR.pnml";
-//		String petriNetPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/myModels/misorder/XOR_SPLIT_AND_SPLIT.pnml";
-//		String logPath = "/Users/shawn/Documents/LAB/寮�棰�/exp/BeehiveZ+jBPT+PIPE/bpm/绗戝皹浠ｇ爜/data/causal/log/FI.403.pnml.mxml";
-		
-//		String dirPath = "D:\\实验室\\开题\\DG\\loop\\";
+//		String dirPath = "D:\\实验室\\开题\\TC\\loop\\";
 		String dirPath = "D:\\实验室\\开题\\TC\\loop";
 		String dataPath = "D:\\实验室\\日志\\data\\";
-		String modelName = "DG-CO.007";
+		String modelName = "TC-FI.020";
 		String postfix = ".pnml";
 		
 //		repair(dirPath, modelName, postfix, dataPath, 3);

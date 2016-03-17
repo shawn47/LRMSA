@@ -239,6 +239,17 @@ public class AlignmentAlgorithm{
  		return tauMin;
 	}
 
+	public int getSigmaKLength(LinkedList<Transition> sigmaK) {
+		int ret = 0;
+		for (Transition item : sigmaK) {
+			if (item.getIdentifier().startsWith("INV_")) {
+				continue;
+			}
+			ret++;
+		}
+		return ret;
+	}
+	
 	/**
 	 * return tau after sigmaK
 	 * @param sigmaK
@@ -248,9 +259,11 @@ public class AlignmentAlgorithm{
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public LinkedList<Transition> branch2(LinkedList<Transition> sigmaK, LinkedList<Transition> visit, LinkedList<String> trace, int k, int depth, int[] count, boolean[] flag){
-		// System.out.println(sigmaK+" "+trace+" "+k+" "+depth);
+	public LinkedList<Transition> branch2(LinkedList<LinkedList<Transition>> sigmaKSet, LinkedList<Transition> sigmaK, LinkedList<String> trace, int len, int k, int depth, int[] count, boolean[] flag){
 //		long nowTime = System.currentTimeMillis();
+//		if (getSigmaKLength(sigmaK) > len) {
+//			return null;
+//		}
 		Comparator<Transition> cmp = new Comparator<Transition>() {  
             @Override  
             public int compare(Transition t1, Transition t2) {  
@@ -274,12 +287,23 @@ public class AlignmentAlgorithm{
 		int nodeIndex = -1;
 		
 		if(k == (trace.size() - 1)){
-			// System.out.println("end:"+sigmaK);
 			Transition lastTrans = transMap.get(trace.get(k));
 			LinkedList<Place> lastMarking = findMarking(sigmaK);
 			if(enabled(lastMarking, lastTrans)) {
-				sigmaK.add(lastTrans);
-				return sigmaK;
+				LinkedList<Transition> tmpSeqLinkedList = new LinkedList<Transition>();
+				tmpSeqLinkedList.addAll(sigmaK);
+				tmpSeqLinkedList.add(lastTrans);
+				
+				sigmaKSet.add(tmpSeqLinkedList);
+				if (getSigmaKLength(sigmaK) > len - 1) {
+					return null;
+				}
+				else {
+					sigmaK.add(lastTrans);
+					return sigmaK;
+				}
+//				sigmaK.add(lastTrans);
+//				return sigmaK;
 			}
 			else {
 				LinkedList<Transition> tmpPostTransList = new LinkedList<Transition>();
@@ -294,26 +318,33 @@ public class AlignmentAlgorithm{
 						tmpSigmaK.add(t);
 						LinkedList<Place> tmpLastMarking = findMarking(tmpSigmaK);
 						if(enabled(tmpLastMarking, lastTrans)) {
-							sigmaK.add(lastTrans);
-							return sigmaK;
+							LinkedList<Transition> tmpSeqLinkedList = new LinkedList<Transition>();
+							tmpSeqLinkedList.addAll(sigmaK);
+							tmpSeqLinkedList.add(lastTrans);
+							
+							sigmaKSet.add(tmpSeqLinkedList);
+							if (getSigmaKLength(sigmaK) > len - 1) {
+								return null;
+							}
+							else {
+								sigmaK.add(lastTrans);
+								return sigmaK;
+							}
+//							sigmaK.add(lastTrans);
+//							return sigmaK;
 						}
 					}
 				}
 				return null;
 			}
 		}
-//		if((nowTime-startTime)>20000){
-//			// System.out.println("time out");
-//			// time out
-//			return null;
-//		}
-		if(depth > 1000){
+		
+		if(depth > 30){
 			return null;
 		}
 		Transition trans = transMap.get(trace.get(k));
 		
 		LinkedList<Place> marking = findMarking(sigmaK);
-//		HashSet<Transition> postTransList = new HashSet<Transition>();
 		LinkedList<Transition> postTransList = new LinkedList<Transition>();
 		for(Place p:marking){
 			postTransList.addAll(p.getSuccessors());
@@ -322,10 +353,15 @@ public class AlignmentAlgorithm{
 			LinkedList<Transition> tau = new LinkedList<Transition>();
 			tau.addAll(sigmaK);
 			tau.add(trans);
-			LinkedList<Transition> tau2 = branch2(tau, new LinkedList<Transition>(), trace, k + 1, 0, count, flag);
+			LinkedList<Transition> tau2 = branch2(sigmaKSet, tau, trace, len, k + 1, 0, count, flag);
 			if ((k + 1) == (trace.size() - 1)) {
 				infiniteTauMin = false;
 				flag[0] = true;
+//				if (tau2 != null) {
+//					if (tau2.size() > len) {
+//						return null;
+//					}
+//				}
 				return tau2;
 			}
 			else {
@@ -333,9 +369,6 @@ public class AlignmentAlgorithm{
 				if(!(tau2 == null || tau2.isEmpty())) {
 					return tau2;
 				}
-//				if (flag[0]) {
-//					return tau2;
-//				}
 			}
 		}
 		
@@ -349,15 +382,12 @@ public class AlignmentAlgorithm{
 //				if(visit.contains(t)){
 //					continue;
 //				}
-				LinkedList<Transition> newVisit = new LinkedList<Transition>();
-				newVisit.addAll(visit);
 				if (t.getIdentifier().startsWith("INV_")) {
-					newVisit.add(t);
 					LinkedList<Transition> tau = new LinkedList<Transition>();
 					tau.addAll(sigmaK);
 					tau.add(t);
 //					System.out.println("+" + t.getIdentifier());
-					LinkedList<Transition> tau2 = branch2(tau, newVisit, trace, k, depth + 1, count, flag);
+					LinkedList<Transition> tau2 = branch2(sigmaKSet, tau, trace, len, k, depth + 1, count, flag);
 					if(tau2 == null || tau2.isEmpty()){
 						count[0]++;
 //						System.out.println("-" + t.getIdentifier());
@@ -371,25 +401,23 @@ public class AlignmentAlgorithm{
 								tauMin = tau2;
 							}
 						}
-						break;
+//						break;
 					}
 				}
 				else {
 					nodeIndex = trace.lastIndexOf(t.getIdentifier());
 					if (nodeIndex != -1) {
 						trace.remove(nodeIndex);
-						newVisit.add(t);
 						LinkedList<Transition> tau = new LinkedList<Transition>();
 						tau.addAll(sigmaK);
 						tau.add(t);
-//						System.out.println("+" + t.getIdentifier());
-						LinkedList<Transition> tau2 = branch2(tau, newVisit, trace, k, depth + 1, count, flag);
+						LinkedList<Transition> tau2 = branch2(sigmaKSet, tau, trace, len, k, depth + 1, count, flag);
 						if(tau2 == null || tau2.isEmpty()){
 							trace.add(nodeIndex, t.getIdentifier());
-//							System.out.println("-" + t.getIdentifier());
 							count[0]++;
 							continue;
 						}else{
+							trace.add(nodeIndex, t.getIdentifier());
 							if(infiniteTauMin){
 								tauMin = tau2;
 								infiniteTauMin = false;
@@ -398,21 +426,20 @@ public class AlignmentAlgorithm{
 									tauMin = tau2;
 								}
 							}
-							break;
+//							break;
 						}
 					}
 					else {
 						// the previous method is get the event in raw trace
 						// however we should visit every possible path for A* algorithm
 //						continue;
-						if (visit.contains(t)) {
-							continue;
-						}
-						newVisit.add(t);
+//						if (visit.contains(t)) {
+//							continue;
+//						}
 						LinkedList<Transition> tau = new LinkedList<Transition>();
 						tau.addAll(sigmaK);
 						tau.add(t);
-						LinkedList<Transition> tau2 = branch2(tau, newVisit, trace, k, depth + 1, count, flag);
+						LinkedList<Transition> tau2 = branch2(sigmaKSet, tau, trace, len, k, depth + 1, count, flag);
 						if(tau2 == null || tau2.isEmpty()){
 							count[0]++;
 							continue;
@@ -425,7 +452,7 @@ public class AlignmentAlgorithm{
 									tauMin = tau2;
 								}
 							}
-							break;
+//							break;
 						}
 					}
 				}
@@ -435,15 +462,25 @@ public class AlignmentAlgorithm{
 	}
 
 	
-	public LinkedList<Transition> repair(PetriNet net, LinkedList<String> eventLog, int[] count) {
+	public LinkedList<Transition> repair(PetriNet net, LinkedList<String> eventLog, int[] count, int[] solutionSize) {
 		startTime = System.currentTimeMillis();
 		LinkedList<Transition> sigmaK = new LinkedList<Transition>();
+		LinkedList<LinkedList<Transition>> sigmaKSet = new LinkedList<LinkedList<Transition>>();
 		boolean[] flag = new boolean[1];
 		flag[0] = false;
 //		LinkedList<Transition> retOriginLog = branch(sigmaK, new LinkedList<Transition>(), eventLog, 0, 0, count, flag);
-		LinkedList<Transition> retOriginLog = branch2(sigmaK, new LinkedList<Transition>(), eventLog, 0, 0, count, flag);
+		int len = eventLog.size();
+		LinkedList<Transition> retOriginLog = branch2(sigmaKSet, sigmaK, eventLog, len, 0, 0, count, flag);
+		solutionSize[0] = sigmaKSet.size();
+		LinkedList<Transition> leastCostSolution = new LinkedList<Transition>();
+		for (LinkedList<Transition> seq : sigmaKSet) {
+			if (getSigmaKLength(seq) == len) {
+				leastCostSolution.clear();
+				leastCostSolution.addAll(seq);
+			}
+		}
 		LinkedList<Transition> ret = new LinkedList<Transition>();
-		for (Transition node : retOriginLog) {
+		for (Transition node : leastCostSolution) {
 			if (node.getIdentifier().startsWith("INV_")) {
 				continue;
 			}
