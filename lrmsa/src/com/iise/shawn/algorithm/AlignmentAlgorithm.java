@@ -339,7 +339,7 @@ public class AlignmentAlgorithm{
 			}
 		}
 		
-		if(depth > 30){
+		if(depth > 20 && getSigmaKLength(sigmaK) > len - 1){
 			return null;
 		}
 		Transition trans = transMap.get(trace.get(k));

@@ -20,12 +20,15 @@ import java.util.Random;
 
 import org.jbpt.petri.NetSystem;
 import org.jbpt.petri.unfolding.CompletePrefixUnfolding;
+import org.processmining.analysis.redesign.util.PowerSet;
+import org.processmining.converting.PostProcessOfUML2SequenceChartImport;
 import org.processmining.framework.models.petrinet.PetriNet;
 import org.processmining.framework.models.petrinet.Transition;
 import org.processmining.importing.pnml.PnmlImport;
 
 import com.iise.shawn.algorithm.AlignmentAlgorithm;
 import com.iise.shawn.algorithm.MyAlgorithm;
+import com.iise.shawn.algorithm.MyAlgorithmUpdate;
 import com.iise.shawn.main.GenerateTrace;
 import com.iise.shawn.ssd.SSD;
 import com.iise.shawn.util.AlgorithmType;
@@ -38,6 +41,7 @@ import cern.colt.matrix.DoubleMatrix2D;
 public class Test {
 	private static AlignmentAlgorithm aA = new AlignmentAlgorithm();
 	private static MyAlgorithm mA = new MyAlgorithm();
+	private static MyAlgorithmUpdate myAU = new MyAlgorithmUpdate();
 	
 	private static Random ran = new Random(1);
 	private static GenerateTrace gTrace = new GenerateTrace();
@@ -122,6 +126,21 @@ public class Test {
 		mA.setSSDMatrix(ssdMatrix);
 		mA.setOrderCPU(alOrder_cfp);
 		mA.initSSDMatrixNew();
+		
+		myAU = new MyAlgorithmUpdate();
+		myAU.setEndNodeIndex(i);
+		endTime = System.nanoTime();
+		System.out.println("===== end SSD Computation Status ===== ");
+		System.out.println("init SSD time consumed: " + (endTime - startTime));
+		bw.write("SSD Time Consumed:\t" + (endTime - startTime) + "\n");
+		myAU.setModel(model);
+		myAU.setCPU(cpu);
+		myAU.setSSD(ssd);
+		myAU.setSSDMatrix(ssdMatrix);
+		myAU.setOrderCPU(alOrder_cfp);
+		myAU.initSSDMatrixNew();
+		
+		
 		if (algoType == AlgorithmType.batch) {
 			bw.write("Trace Number:\t" + (gTrace.traceBatchList.size()) + "\n");
 		}
@@ -146,7 +165,8 @@ public class Test {
 		
 		initializeAlgorithm(model, modelName, dataPath, loopNum, algoType);
 		
-		long startTime = 0, endTime = 0, delta1 = 0, delta2 = 0;
+		long startTime = 0, endTime = 0;
+		float delta1 = 0, delta2 = 0;
 		float rateSum = 0;
 		LinkedList<Transition> tau = null;
 		List<String> rtn = null;
@@ -155,6 +175,10 @@ public class Test {
 		File output = new File(dataFileName);
 		FileWriter fw = new FileWriter(output, true);
 		BufferedWriter bw = new BufferedWriter(fw);
+		
+		File outputGraph = new File(dataGraphFileName);
+		FileWriter fwGraph = new FileWriter(outputGraph, true);
+		BufferedWriter bwGraph = new BufferedWriter(fwGraph);
 
 		if(algoType == AlgorithmType.alignment) {
 //			System.out.println("============= Alignment Status ============= ");
@@ -206,11 +230,12 @@ public class Test {
 				count[0] = 0;
 				
 				LinkedList<String> log2 = new LinkedList<String>();
-				String input = "Phone or E-mail to inform the Finance Ministry and related departments , Complete financial view , Start, Submit applications for customer master data maintenance , Submit applications for customer master data maintenance , Customer master data to create and modify and freeze and delete , End, Submit applications for customer master data maintenance , Submit applications for customer master data maintenance ";
+				String input = "Start, Maintenance of accounts submitted for, Business leader and general ledger accounting and auditing reasonable, General ledger accounting changes and to freeze and delete subjects , Treasurer Check , End";
 				String[] inputArray = input.split(", ");
 				for (String itm : inputArray) {
 					log2.add(itm);
 				}
+				Collections.shuffle(log2);
 				System.out.println("raw log: " + log2);
 				int[] alignmentSolutionSize = new int[1];
 				startTime = System.nanoTime();
@@ -233,8 +258,8 @@ public class Test {
 			}
 			else if (algoType == AlgorithmType.debug) {
 				System.out.println((index + 1) + "th trace(" + gTrace.traceList.size() + ") complete " + ((double)(index + 1) / gTrace.traceList.size()));
-				long delta2f = Long.MAX_VALUE;
-				for (int loop = 0; loop < 10; loop++) {
+				long delta2f = 0;
+				for (int loop = 0; loop < 6; loop++) {
 					Map<String, Integer> multisetNewData = new HashMap<String, Integer>();
 					for (int i = 0; i < log.size(); i++) {if (!multisetNewData.containsKey(log.get(i))) {
 							multisetNewData.put(log.get(i), 1);
@@ -245,78 +270,168 @@ public class Test {
 						}
 					}
 					if (loop == 0) {
-						bw.write("raw multiset:\t" + multisetNewData + "\n");
+//						bw.write("raw multiset:\t" + multisetNewData + "\n");
 						System.out.println("===== for MyAlgo ===== ");
 						bw.write("===== for MyAlgo ===== \n");
 					}
 					startTime = System.nanoTime();
 					rtn = mA.repair2(multisetNewData);
 					endTime = System.nanoTime();
-					delta2 = endTime - startTime;
-					if (delta2 < delta2f) {
-						delta2f = delta2;
+					if (loop != 0) {
+						delta2f += endTime - startTime;
 					}
 				}
+				delta2 = (float)delta2f / 5;
 				
 				System.out.println("result log: " + rtn);
-				System.out.println("time consumed for myAlgo: " + delta2f);
-				bw.write("result log:\t" + rtn + "\n");
-				bw.write("time consumed for myAlgo:\t" + delta2f + "\n");
+				System.out.println("time consumed for myAlgo: " + delta2);
+				bw.write("time consumed for myAlgo:\t" + delta2 + "\n");
 				
 				
 				int[] count = new int[1];
 				count[0] = 0;
 				
-				long delta1f = Long.MAX_VALUE;
-				for (int loop = 0; loop < 10; loop++) {
+				long delta1f = 0;
+				int[] alignmentSolutionSize = new int[1];
+				for (int loop = 0; loop < 6; loop++) {
 					LinkedList<String> logNew = new LinkedList<String>();
 					String[] inputArray = rawLogString.split(", ");
 					for (String itm : inputArray) {
 						logNew.add(itm);
 					}
 					if (loop == 0) {
-						bw.write("raw log:\t" + logNew + "\n");
+//						bw.write("raw log:\t" + logNew + "\n");
 						System.out.println("===== for Alignment ===== ");
 						bw.write("===== for Alignment ===== \n");
 					}
-					int[] alignmentSolutionSize = new int[1];
 					startTime = System.nanoTime();
+					alignmentSolutionSize[0] = 0;
 					tau = aA.repair(model, logNew, count, alignmentSolutionSize);
 					endTime = System.nanoTime();
-					delta1 = endTime - startTime;
-					if (delta1 < delta1f) {
-						delta1f = delta1;
+					if (loop != 0) {
+						delta1f += endTime - startTime;
 					}
+//					delta1 = endTime - startTime;
+//					if (delta1 < delta1f) {
+//						delta1f = delta1;
+//					}
 				}
+				delta1 = (float)delta1f / 5;
 				
 				
 				System.out.println("result log: " + tau);
 				System.out.println("backtrack num: " + count[0]);
-				System.out.println("time consumed for Alignment: " + delta1f);
-				bw.write("result log:\t" + tau + "\n");
+				System.out.println("time consumed for Alignment: " + delta1);
+//				bw.write("result log:\t" + tau + "\n");
 				bw.write("backtrack num:\t" + count[0] + "\n");
-				bw.write("time consumed for Alignment:\t" + delta1f + "\n");
+				bw.write("solutionset size for Alignment:\t" + alignmentSolutionSize[0] + "\n");
+				bw.write("time consumed for Alignment:\t" + delta1 + "\n");
 				
 				bw.write("===== time rate ===== \n");
-				bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1f / delta2f)));
-				if (rtn.size() != tau.size()) {
-					bw.write("2 result is result? NO\n");
+				bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1 / delta2)));
+
+				// for trace accuracy
+				// 1 : match perfect
+				// 0 : diff between original trace and repaired trace
+				String[] originTrace = originLogString.split(", ");
+				int errorCountRtn = 0, errorCountTau = 0;
+				int minLength = Integer.MAX_VALUE, lenIndex = 0;
+				minLength = Math.min(Math.min(originTrace.length, rtn.size()), tau.size());
+				double traceAccuracyRtn = 0.0, traceAccuracyTau = 0.0;
+				for (; lenIndex < minLength; lenIndex++) {
+					if (!rtn.get(lenIndex).equalsIgnoreCase(originTrace[lenIndex])) {
+						errorCountRtn++;
+					}
 				}
-				else {
-					int checkIndex = 0;
-					for (; checkIndex < tau.size(); checkIndex++) {
-						if (!rtn.get(checkIndex).equalsIgnoreCase(tau.get(checkIndex).getIdentifier())) {
-							bw.write("2 result is result? NO\n");
-							break;
-						}
+				errorCountRtn += Math.abs((originTrace.length - lenIndex));
+				for (lenIndex = 0; lenIndex < minLength; lenIndex++) {
+					if (!tau.get(lenIndex).getIdentifier().replace(",", " and").equalsIgnoreCase(originTrace[lenIndex])) {
+						errorCountTau++;
 					}
-					if (checkIndex == tau.size()) {
-						bw.write("2 result is result? Yes\n");
-					}
+				}
+				errorCountTau += Math.abs((originTrace.length - lenIndex));
+				
+				if (errorCountRtn == 0) {
+					traceAccuracyRtn = 1.0;
+				}
+				if (errorCountTau == 0) {
+					traceAccuracyTau = 1.0;
 				}
 				
+				// for event accuracy
+				double eventAccuracyRtn = 0.0, eventAccuracyTau = 0.0;
+				if (errorCountRtn != 0) {
+					eventAccuracyRtn = 1 - ((double)errorCountRtn) / originTrace.length;
+				}
+				if (errorCountTau != 0) {
+					eventAccuracyTau = 1 - ((double)errorCountTau) / originTrace.length;
+				}
+				
+				// 
+				double accuracyRtn = 0.0, accuracyTau = 0.0;
+				accuracyRtn = traceAccuracyRtn + (1 - traceAccuracyRtn) * eventAccuracyRtn;
+				accuracyTau = traceAccuracyTau + (1 - traceAccuracyTau) * eventAccuracyTau;
+				bw.write("myAlgo rtn length:\t" + rtn.size() + "\n");
+				bw.write("alignment tau length:\t" + tau.size() + "\n");
+				bw.write("model transitions number:\t" + model.getTransitions().size() + "\n");
+				bw.write("accuracy for myAlgo:\t" + accuracyRtn + "\n");
+				bw.write("accuracy for Alignment:\t" + accuracyTau + "\n");
 				bw.write("\n");
-				timeRate[index] = ((float)delta1f / delta2f);
+				timeRate[index] = ((float)delta1 / delta2);
+				// timeForMyAlgo,traceSize,accuracy,timeForAlignment,traceSize,accuracy,modelSize,modelName
+				bwGraph.write(delta2 + "," + rtn.size() + "," + accuracyRtn + "," + delta1 + "," + tau.size() + "," + accuracyTau + "," + model.getTransitions().size() + "," + modelName + "\n");
+				
+				index++;
+			}
+			else if (algoType == AlgorithmType.debug2) {
+				bw.write("raw log:\t" + log + "\n");
+				bw.write("raw multiset:\t" + multiset + "\n");
+				bw.write("===== for old algo ===== \n");
+				
+				Map<String, Integer> multisetOldData = new HashMap<String, Integer>();
+				Map<String, Integer> multisetNewData = new HashMap<String, Integer>();
+				for (int i = 0; i < log.size(); i++) {
+					if (!multisetOldData.containsKey(log.get(i))) {
+						multisetOldData.put(log.get(i), 1);
+					}
+					else {
+						int count = multisetOldData.get(log.get(i));
+						multisetOldData.put(log.get(i), ++count);
+					}
+					if (!multisetNewData.containsKey(log.get(i))) {
+						multisetNewData.put(log.get(i), 1);
+					}
+					else {
+						int count = multisetNewData.get(log.get(i));
+						multisetNewData.put(log.get(i), ++count);
+					}
+				}				
+				
+				startTime = System.nanoTime();
+				rtn = myAU.repair(multisetOldData);
+				endTime = System.nanoTime();
+				delta1 = endTime - startTime;
+				
+//				System.out.println("result log: " + rtn);
+//				System.out.println("time consumed for old algo: " + delta2);
+				bw.write("result log:\t" + rtn + "\n");
+				bw.write("time consumed for old algo:\t" + delta2 + "\n");
+				
+//				System.out.println("===== for new algo ===== ");
+				bw.write("===== for new algo ===== \n");
+				
+				startTime = System.nanoTime();
+				rtn = mA.repair2(multisetNewData);
+				endTime = System.nanoTime();
+				delta2 = endTime - startTime;
+				
+//				System.out.println("result log: " + rtn);
+//				System.out.println("time consumed for new algo: " + delta2);
+				bw.write("result log:\t" + rtn + "\n");
+				bw.write("time consumed for new algo:\t" + delta2 + "\n");
+				bw.write("===== time rate ===== \n");
+				bw.write(String.format("time consumed rate:\t%.2f\n", ((float)delta1 / delta2)));
+				timeRate[index] = ((float)delta1 / delta2);
 				index++;
 			}
 			else if (algoType == AlgorithmType.optimization) {
@@ -383,6 +498,8 @@ public class Test {
 		bw.write(String.format("average time consumed rate(Alignment / MyAlgo):\t%.2f\n", rateSum / gTrace.traceList.size()));
 		bw.close();
 		fw.close();
+		bwGraph.close();
+		fwGraph.close();
 	}
 	
 	public static void testBatch(String dirPath, String dataPath, int loopNum) throws Exception {
@@ -413,6 +530,7 @@ public class Test {
 		
         for(File file : files) {
         	bw.write("model name:\t" + file.getName() + "\n");
+        	System.out.println("model name:\t" + file.getName());
             FileInputStream input = new FileInputStream(file);
             System.out.println(file.getAbsolutePath());
             PetriNet model = pnmlImport.read(input);
@@ -469,7 +587,8 @@ public class Test {
 					bw.write("===== for MyAlgo ===== \n");
 				}
 				startTime = System.nanoTime();
-				rtn = mA.repair2(multisetNewData);
+//				rtn = mA.repair2(multisetNewData);
+				rtn = myAU.repair(multisetNewData);
 				endTime = System.nanoTime();
 				if (loop != 0) {
 					delta2f += endTime - startTime;
@@ -500,11 +619,12 @@ public class Test {
 					logNew.add(itm);
 				}
 				if (loop == 0) {
-					bw.write("raw log:\t" + logNew + "\n");
+//					bw.write("raw log:\t" + logNew + "\n");
 					System.out.println("===== for Alignment ===== ");
 					bw.write("===== for Alignment ===== \n");
 				}
 				startTime = System.nanoTime();
+				alignmentSolutionSize[0] = 0;
 				tau = aA.repair(model, logNew, count, alignmentSolutionSize);
 				endTime = System.nanoTime();
 				if (loop != 0) {
@@ -595,16 +715,18 @@ public class Test {
 	
 	public static void repair(String dirPath, String modelName, String postfix, String dataPath, int loopNum) throws Exception	
 	{
-		DateFormat dateFormat = new SimpleDateFormat("MMdd-HH-mm");
+		DateFormat dateFormat = new SimpleDateFormat("MMdd_HH_mm_ss");
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
 		dataFileName = dataPath + modelName + "_" + dateFormat.format(date) + "_" + loopNum + ".txt";
+		dataGraphFileName = dataPath + "graph\\" + modelName + "_" + dateFormat.format(date) + "_" + loopNum + ".txt";
 		
 		PnmlImport pnmlImport = new PnmlImport();
 		PetriNet model = pnmlImport.read(new FileInputStream(new File(dirPath + modelName + postfix)));
-		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.alignment);
+//		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.alignment);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.myAlgorithm);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.debug);
+		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.debug2);
 //		test(dirPath + modelName + postfix, model, modelName, dataPath, loopNum, 0, AlgorithmType.optimization);
 	}
 	
@@ -620,11 +742,12 @@ public class Test {
 	
 	public static void main(String args[]) throws Exception
 	{
-//		String dirPath = "D:\\实验室\\开题\\TC\\loop\\";
-		String dirPath = "D:\\实验室\\开题\\TC\\loop";
+//		String dirPath = "D:\\实验室\\开题\\efficiency\\loop\\";
+		String dirPath = "D:\\实验室\\开题\\efficiency\\loop";
 		String dataPath = "D:\\实验室\\日志\\data\\";
-		String modelName = "TC-FI.020";
+		String modelName = "TC_MM.300";
 		String postfix = ".pnml";
+		
 		
 //		repair(dirPath, modelName, postfix, dataPath, 3);
 		repairBatch(dirPath, dataPath, 3);
